@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shipin.mappers.CategoryMapper">
+
+	<!--实体映射-->
+	<resultMap id="base_result_map" type="com.shipin.entity.po.Category">
+		<!--分类ID-->
+		<id column="category_id" property="categoryId"  />
+		<!--分类名称-->
+		<result column="category_name" property="categoryName"  />
+		<!--分类描述-->
+		<result column="description" property="description"  />
+		<!--状态：1=启用，0=禁用-->
+		<result column="status" property="status"  />
+		<!--排序-->
+		<result column="sort_order" property="sortOrder"  />
+		<!--创建时间-->
+		<result column="create_time" property="createTime"  />
+		<!--更新时间-->
+		<result column="update_time" property="updateTime"  />
+	</resultMap>
+
+
+	<!-- 通用查询结果列-->
+	<sql id="base_column_list">
+		 c.category_id,c.category_name,c.description,c.status,c.sort_order,
+		 c.create_time,c.update_time
+	</sql>
+
+	<sql id="base_condition_filed">
+			<if test="query.categoryId != null">
+				 and  c.category_id = #{query.categoryId}
+			</if>
+			<if test="query.categoryName != null and query.categoryName!=''">
+				 and  c.category_name = #{query.categoryName}
+			</if>
+			<if test="query.description != null and query.description!=''">
+				 and  c.description = #{query.description}
+			</if>
+			<if test="query.status != null">
+				 and  c.status = #{query.status}
+			</if>
+			<if test="query.sortOrder != null">
+				 and  c.sort_order = #{query.sortOrder}
+			</if>
+			<if test="query.createTime != null and query.createTime!=''">
+				 <![CDATA[ and  c.create_time=str_to_date(#{query.createTime}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.updateTime != null and query.updateTime!=''">
+				 <![CDATA[ and  c.update_time=str_to_date(#{query.updateTime}, '%Y-%m-%d') ]]>
+			</if>
+	</sql>
+
+	<!-- 通用查询条件列-->
+	<sql id="query_condition">
+	 <where>
+			<include refid="base_condition_filed" />
+			<if test="query.categoryNameFuzzy!= null  and query.categoryNameFuzzy!=''">
+				 and  c.category_name like concat('%', #{query.categoryNameFuzzy}, '%')
+			</if>
+			<if test="query.descriptionFuzzy!= null  and query.descriptionFuzzy!=''">
+				 and  c.description like concat('%', #{query.descriptionFuzzy}, '%')
+			</if>
+			<if test="query.createTimeStart!= null and query.createTimeStart!=''">
+				 <![CDATA[ and  c.create_time>=str_to_date(#{query.createTimeStart}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.createTimeEnd!= null and query.createTimeEnd!=''">
+				 <![CDATA[ and  c.create_time< date_sub(str_to_date(#{query.createTimeEnd},'%Y-%m-%d'),interval -1 day) ]]>
+			</if>
+			<if test="query.updateTimeStart!= null and query.updateTimeStart!=''">
+				 <![CDATA[ and  c.update_time>=str_to_date(#{query.updateTimeStart}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.updateTimeEnd!= null and query.updateTimeEnd!=''">
+				 <![CDATA[ and  c.update_time< date_sub(str_to_date(#{query.updateTimeEnd},'%Y-%m-%d'),interval -1 day) ]]>
+			</if>
+	 </where>
+	</sql>
+
+	<!-- 查询集合-->
+	<select id="selectList" resultMap="base_result_map" >
+		 SELECT <include refid="base_column_list" /> FROM category c <include refid="query_condition" />
+		 <if test="query.orderBy!=null">
+			 order by ${query.orderBy}
+		 </if>
+		 <if test="query.simplePage!=null">
+			 limit #{query.simplePage.start},#{query.simplePage.end}
+		 </if>
+	</select>
+
+	<!-- 查询数量-->
+	<select id="selectCount" resultType="java.lang.Integer" >
+		 SELECT count(1) FROM category c <include refid="query_condition" />
+	</select>
+
+	<!-- 插入 （匹配有值的字段）-->
+	<insert id="insert" parameterType="com.shipin.entity.po.Category">
+		<selectKey keyProperty="bean.categoryId" resultType="Integer" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		 INSERT INTO category
+		 <trim prefix="(" suffix=")" suffixOverrides="," >
+			<if test="bean.categoryName != null">
+				 category_name,
+			</if>
+			<if test="bean.description != null">
+				 description,
+			</if>
+			<if test="bean.status != null">
+				 status,
+			</if>
+			<if test="bean.sortOrder != null">
+				 sort_order,
+			</if>
+			<if test="bean.createTime != null">
+				 create_time,
+			</if>
+			<if test="bean.updateTime != null">
+				 update_time,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides="," >
+			<if test="bean.categoryName!=null">
+				 #{bean.categoryName},
+			</if>
+			<if test="bean.description!=null">
+				 #{bean.description},
+			</if>
+			<if test="bean.status!=null">
+				 #{bean.status},
+			</if>
+			<if test="bean.sortOrder!=null">
+				 #{bean.sortOrder},
+			</if>
+			<if test="bean.createTime!=null">
+				 #{bean.createTime},
+			</if>
+			<if test="bean.updateTime!=null">
+				 #{bean.updateTime},
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 插入或者更新 （匹配有值的字段）-->
+	<insert id="insertOrUpdate" parameterType="com.shipin.entity.po.Category">
+		 INSERT INTO category
+		 <trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.categoryId != null">
+				 category_id,
+			</if>
+			<if test="bean.categoryName != null">
+				 category_name,
+			</if>
+			<if test="bean.description != null">
+				 description,
+			</if>
+			<if test="bean.status != null">
+				 status,
+			</if>
+			<if test="bean.sortOrder != null">
+				 sort_order,
+			</if>
+			<if test="bean.createTime != null">
+				 create_time,
+			</if>
+			<if test="bean.updateTime != null">
+				 update_time,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.categoryId!=null">
+				 #{bean.categoryId},
+			</if>
+			<if test="bean.categoryName!=null">
+				 #{bean.categoryName},
+			</if>
+			<if test="bean.description!=null">
+				 #{bean.description},
+			</if>
+			<if test="bean.status!=null">
+				 #{bean.status},
+			</if>
+			<if test="bean.sortOrder!=null">
+				 #{bean.sortOrder},
+			</if>
+			<if test="bean.createTime!=null">
+				 #{bean.createTime},
+			</if>
+			<if test="bean.updateTime!=null">
+				 #{bean.updateTime},
+			</if>
+		 </trim>
+		 on DUPLICATE key update 
+		 <trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.categoryName!=null">
+				 category_name = VALUES(category_name),
+			</if>
+			<if test="bean.description!=null">
+				 description = VALUES(description),
+			</if>
+			<if test="bean.status!=null">
+				 status = VALUES(status),
+			</if>
+			<if test="bean.sortOrder!=null">
+				 sort_order = VALUES(sort_order),
+			</if>
+			<if test="bean.createTime!=null">
+				 create_time = VALUES(create_time),
+			</if>
+			<if test="bean.updateTime!=null">
+				 update_time = VALUES(update_time),
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 添加 （批量插入）-->
+	<insert id="insertBatch" parameterType="com.shipin.entity.po.Category" useGeneratedKeys="true" keyProperty="categoryId">
+		 INSERT INTO category(
+			 category_name,
+			 description,
+			 status,
+			 sort_order,
+			 create_time,
+			 update_time
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.categoryName},
+				 #{item.description},
+				 #{item.status},
+				 #{item.sortOrder},
+				 #{item.createTime},
+				 #{item.updateTime}
+			 )
+		 </foreach>
+	</insert>
+
+	<!-- 批量新增修改 （批量插入）-->
+	<insert id="insertOrUpdateBatch" parameterType="com.shipin.entity.po.Category">
+		 INSERT INTO category(
+			 category_name,
+			 description,
+			 status,
+			 sort_order,
+			 create_time,
+			 update_time
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.categoryName},
+				 #{item.description},
+				 #{item.status},
+				 #{item.sortOrder},
+				 #{item.createTime},
+				 #{item.updateTime}
+			 )
+		 </foreach>
+		on DUPLICATE key update 
+		category_name = VALUES(category_name),
+		description = VALUES(description),
+		status = VALUES(status),
+		sort_order = VALUES(sort_order),
+		create_time = VALUES(create_time),
+		update_time = VALUES(update_time)
+	</insert>
+
+	<!--多条件修改-->
+	<update id="updateByParam" parameterType="com.shipin.entity.query.CategoryQuery">
+		 UPDATE category c
+		 <set> 
+			<if test="bean.categoryName != null">
+				 category_name = #{bean.categoryName},
+			</if>
+			<if test="bean.description != null">
+				 description = #{bean.description},
+			</if>
+			<if test="bean.status != null">
+				 status = #{bean.status},
+			</if>
+			<if test="bean.sortOrder != null">
+				 sort_order = #{bean.sortOrder},
+			</if>
+			<if test="bean.createTime != null">
+				 create_time = #{bean.createTime},
+			</if>
+			<if test="bean.updateTime != null">
+				 update_time = #{bean.updateTime},
+			</if>
+		 </set>
+		 <include refid="query_condition" />
+	</update>
+
+	<!--多条件删除-->
+	<delete id="deleteByParam">
+		 delete c from category c
+ 		 <include refid="query_condition" />
+	</delete>
+
+	<!-- 根据CategoryId修改-->
+	<update id="updateByCategoryId" parameterType="com.shipin.entity.po.Category">
+		 UPDATE category
+		 <set> 
+			<if test="bean.categoryName != null">
+				 category_name = #{bean.categoryName},
+			</if>
+			<if test="bean.description != null">
+				 description = #{bean.description},
+			</if>
+			<if test="bean.status != null">
+				 status = #{bean.status},
+			</if>
+			<if test="bean.sortOrder != null">
+				 sort_order = #{bean.sortOrder},
+			</if>
+			<if test="bean.createTime != null">
+				 create_time = #{bean.createTime},
+			</if>
+			<if test="bean.updateTime != null">
+				 update_time = #{bean.updateTime},
+			</if>
+		 </set>
+		 where category_id=#{categoryId}
+	</update>
+
+	<!-- 根据CategoryId删除-->
+	<delete id="deleteByCategoryId">
+		delete from category where category_id=#{categoryId}
+	</delete>
+
+	<!-- 根据PrimaryKey获取对象-->
+	<select id="selectByCategoryId" resultMap="base_result_map" >
+		select <include refid="base_column_list" /> from category c where category_id=#{categoryId}
+	</select>
+
+	<!-- 根据CategoryName修改-->
+	<update id="updateByCategoryName" parameterType="com.shipin.entity.po.Category">
+		 UPDATE category
+ 		 <set> 
+			<if test="bean.description != null">
+				 description = #{bean.description},
+			</if>
+			<if test="bean.status != null">
+				 status = #{bean.status},
+			</if>
+			<if test="bean.createTime != null">
+				 create_time = #{bean.createTime},
+			</if>
+			<if test="bean.updateTime != null">
+				 update_time = #{bean.updateTime},
+			</if>
+ 		 </set>
+ 		 where category_name=#{categoryName}
+	</update>
+
+	<!-- 根据CategoryName删除-->
+	<delete id="deleteByCategoryName">
+		delete from category where category_name=#{categoryName}
+	</delete>
+
+	<!-- 根据PrimaryKey获取对象-->
+	<select id="selectByCategoryName" resultMap="base_result_map" >
+		select <include refid="base_column_list" /> from category c where category_name=#{categoryName}
+	</select>
+
+
+	<select id="selectCategory" resultType="com.shipin.entity.po.Category">
+		select * from category
+	</select>
+</mapper>

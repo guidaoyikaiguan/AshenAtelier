@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shipin.mappers.AdminMapper">
+
+	<!--实体映射-->
+	<resultMap id="base_result_map" type="com.shipin.entity.po.Admin">
+		<!---->
+		<result column="admin_id" property="adminId"  />
+		<!---->
+		<result column="admin_name" property="adminName"  />
+		<!---->
+		<result column="password" property="password"  />
+	</resultMap>
+
+
+	<!-- 通用查询结果列-->
+	<sql id="base_column_list">
+		 a.admin_id,a.admin_name,a.password
+	</sql>
+
+	<sql id="base_condition_filed">
+			<if test="query.adminId != null">
+				 and  a.admin_id = #{query.adminId}
+			</if>
+			<if test="query.adminName != null and query.adminName!=''">
+				 and  a.admin_name = #{query.adminName}
+			</if>
+			<if test="query.password != null and query.password!=''">
+				 and  a.password = #{query.password}
+			</if>
+	</sql>
+
+	<!-- 通用查询条件列-->
+	<sql id="query_condition">
+	 <where>
+			<include refid="base_condition_filed" />
+			<if test="query.adminNameFuzzy!= null  and query.adminNameFuzzy!=''">
+				 and  a.admin_name like concat('%', #{query.adminNameFuzzy}, '%')
+			</if>
+			<if test="query.passwordFuzzy!= null  and query.passwordFuzzy!=''">
+				 and  a.password like concat('%', #{query.passwordFuzzy}, '%')
+			</if>
+	 </where>
+	</sql>
+
+	<!-- 查询集合-->
+	<select id="selectList" resultMap="base_result_map" >
+		 SELECT <include refid="base_column_list" /> FROM admin a <include refid="query_condition" />
+		 <if test="query.orderBy!=null">
+			 order by ${query.orderBy}
+		 </if>
+		 <if test="query.simplePage!=null">
+			 limit #{query.simplePage.start},#{query.simplePage.end}
+		 </if>
+	</select>
+
+	<!-- 查询数量-->
+	<select id="selectCount" resultType="java.lang.Integer" >
+		 SELECT count(1) FROM admin a <include refid="query_condition" />
+	</select>
+
+	<!-- 插入 （匹配有值的字段）-->
+	<insert id="insert" parameterType="com.shipin.entity.po.Admin">
+		 INSERT INTO admin
+		 <trim prefix="(" suffix=")" suffixOverrides="," >
+			<if test="bean.adminId != null">
+				 admin_id,
+			</if>
+			<if test="bean.adminName != null">
+				 admin_name,
+			</if>
+			<if test="bean.password != null">
+				 password,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides="," >
+			<if test="bean.adminId!=null">
+				 #{bean.adminId},
+			</if>
+			<if test="bean.adminName!=null">
+				 #{bean.adminName},
+			</if>
+			<if test="bean.password!=null">
+				 #{bean.password},
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 插入或者更新 （匹配有值的字段）-->
+	<insert id="insertOrUpdate" parameterType="com.shipin.entity.po.Admin">
+		 INSERT INTO admin
+		 <trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.adminId != null">
+				 admin_id,
+			</if>
+			<if test="bean.adminName != null">
+				 admin_name,
+			</if>
+			<if test="bean.password != null">
+				 password,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.adminId!=null">
+				 #{bean.adminId},
+			</if>
+			<if test="bean.adminName!=null">
+				 #{bean.adminName},
+			</if>
+			<if test="bean.password!=null">
+				 #{bean.password},
+			</if>
+		 </trim>
+		 on DUPLICATE key update 
+		 <trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.adminId!=null">
+				 admin_id = VALUES(admin_id),
+			</if>
+			<if test="bean.adminName!=null">
+				 admin_name = VALUES(admin_name),
+			</if>
+			<if test="bean.password!=null">
+				 password = VALUES(password),
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 添加 （批量插入）-->
+	<insert id="insertBatch" parameterType="com.shipin.entity.po.Admin">
+		 INSERT INTO admin(
+			 admin_id,
+			 admin_name,
+			 password
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.adminId},
+				 #{item.adminName},
+				 #{item.password}
+			 )
+		 </foreach>
+	</insert>
+
+	<!-- 批量新增修改 （批量插入）-->
+	<insert id="insertOrUpdateBatch" parameterType="com.shipin.entity.po.Admin">
+		 INSERT INTO admin(
+			 admin_id,
+			 admin_name,
+			 password
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.adminId},
+				 #{item.adminName},
+				 #{item.password}
+			 )
+		 </foreach>
+			on DUPLICATE key update 
+			admin_id = VALUES(admin_id),
+			admin_name = VALUES(admin_name),
+			password = VALUES(password)
+	</insert>
+
+	<!--多条件修改-->
+	<update id="updateByParam" parameterType="com.shipin.entity.query.AdminQuery">
+		 UPDATE admin a
+ 		 <set> 
+			<if test="bean.adminId != null">
+				 admin_id = #{bean.adminId},
+			</if>
+			<if test="bean.adminName != null">
+				 admin_name = #{bean.adminName},
+			</if>
+			<if test="bean.password != null">
+				 password = #{bean.password},
+			</if>
+ 		 </set>
+ 		 <include refid="query_condition" />
+	</update>
+
+	<!--多条件删除-->
+	<delete id="deleteByParam">
+		 delete a from admin a
+ 		 <include refid="query_condition" />
+	</delete>
+
+	<!-- 根据AdminId修改-->
+	<update id="updateByAdminId" parameterType="com.shipin.entity.po.Admin">
+		 UPDATE admin
+ 		 <set> 
+			<if test="bean.adminName != null">
+				 admin_name = #{bean.adminName},
+			</if>
+			<if test="bean.password != null">
+				 password = #{bean.password},
+			</if>
+ 		 </set>
+ 		 where admin_id=#{adminId}
+	</update>
+
+	<!-- 根据AdminId删除-->
+	<delete id="deleteByAdminId">
+		delete from admin where admin_id=#{adminId}
+	</delete>
+
+	<!-- 根据PrimaryKey获取对象-->
+	<select id="selectByAdminId" resultMap="base_result_map" >
+		select <include refid="base_column_list" /> from admin a where admin_id=#{adminId}
+	</select>
+
+
+	<select id="selectByAdminName" resultType="com.shipin.entity.po.Admin">
+		select <include refid="base_column_list" /> from admin a where admin_name=#{adminName}
+	</select>
+</mapper>

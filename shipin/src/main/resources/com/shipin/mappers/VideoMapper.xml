@@ -1,0 +1,703 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shipin.mappers.VideoMapper">
+
+	<!--实体映射-->
+	<resultMap id="base_result_map" type="com.shipin.entity.po.Video">
+		<!--视频ID-->
+		<id column="video_id" property="videoId"  />
+		<!--上传用户ID-->
+		<result column="user_id" property="userId"  />
+		<!--视频分类ID-->
+		<result column="categroy_id" property="categroyId"  />
+		<!--视频标题-->
+		<result column="title" property="title"  />
+		<!--视频描述-->
+		<result column="description" property="description"  />
+		<!--视频标签-->
+		<result column="tags" property="tags"  />
+		<!--视频存储路径-->
+		<result column="video_url" property="videoUrl"  />
+		<!--视频封面图路径-->
+		<result column="cover_url" property="coverUrl"  />
+		<!--视频时长（秒）-->
+		<result column="duration" property="duration"  />
+		<!--播放量-->
+		<result column="play_count" property="playCount"  />
+		<!--点赞数-->
+		<result column="like_count" property="likeCount"  />
+		<!--评论数-->
+		<result column="comment_count" property="commentCount"  />
+		<!--状态（0：待审核，1：已通过，2：已拒绝）-->
+		<result column="status" property="status"  />
+		<!--上传时间-->
+		<result column="create_time" property="createTime"  />
+		<!--更新时间-->
+		<result column="update_time" property="updateTime"  />
+		<!--硬币数-->
+		<result column="coins_inserted" property="coinsInserted"  />
+		<!--收藏数-->
+		<result column="follow_count" property="followCount"  />
+	</resultMap>
+
+
+	<!-- 通用查询结果列-->
+	<sql id="base_column_list">
+		 v.video_id,v.user_id,v.categroy_id,v.title,v.description,v.tags,
+		 v.video_url,v.cover_url,v.duration,v.play_count,v.like_count,
+		 v.comment_count,v.status,v.create_time,v.update_time,v.coins_inserted,v.follow_count
+	</sql>
+
+	<sql id="base_condition_filed">
+			<if test="query.videoId != null">
+				 and  v.video_id = #{query.videoId}
+			</if>
+			<if test="query.userId != null">
+				 and  v.user_id = #{query.userId}
+			</if>
+			<if test="query.categroyId != null">
+				 and  v.categroy_id = #{query.categroyId}
+			</if>
+			<if test="query.title != null and query.title!=''">
+				 and  v.title = #{query.title}
+			</if>
+			<if test="query.description != null and query.description!=''">
+				 and  v.description = #{query.description}
+			</if>
+			<if test="query.videoUrl != null and query.videoUrl!=''">
+				 and  v.video_url = #{query.videoUrl}
+			</if>
+			<if test="query.coverUrl != null and query.coverUrl!=''">
+				 and  v.cover_url = #{query.coverUrl}
+			</if>
+			<if test="query.duration != null and query.duration!=''">
+				 and  v.duration = #{query.duration}
+			</if>
+			<if test="query.playCount != null and query.playCount!=''">
+				 and  v.play_count = #{query.playCount}
+			</if>
+			<if test="query.likeCount != null and query.likeCount!=''">
+				 and  v.like_count = #{query.likeCount}
+			</if>
+			<if test="query.commentCount != null and query.commentCount!=''">
+				 and  v.comment_count = #{query.commentCount}
+			</if>
+			<if test="query.status != null and query.status!=''">
+				 and  v.status = #{query.status}
+			</if>
+			<if test="query.createTime != null and query.createTime!=''">
+				 <![CDATA[ and  v.create_time=str_to_date(#{query.createTime}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.updateTime != null and query.updateTime!=''">
+				 <![CDATA[ and  v.update_time=str_to_date(#{query.updateTime}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.coinsInserted != null and query.coinsInserted!=''">
+				 and  v.coins_inserted = #{query.coinsInserted}
+			</if>
+			<if test="query.followCount != null and query.followCount!=''">
+				 and  v.follow_count = #{query.followCount}
+			</if>
+	</sql>
+
+	<!-- 通用查询条件列-->
+	<sql id="query_condition">
+	 <where>
+			<include refid="base_condition_filed" />
+			<if test="query.titleFuzzy!= null  and query.titleFuzzy!=''">
+				 and  v.title like concat('%', #{query.titleFuzzy}, '%')
+			</if>
+			<if test="query.descriptionFuzzy!= null  and query.descriptionFuzzy!=''">
+				 and  v.description like concat('%', #{query.descriptionFuzzy}, '%')
+			</if>
+			<if test="query.videoUrlFuzzy!= null  and query.videoUrlFuzzy!=''">
+				 and  v.video_url like concat('%', #{query.videoUrlFuzzy}, '%')
+			</if>
+			<if test="query.coverUrlFuzzy!= null  and query.coverUrlFuzzy!=''">
+				 and  v.cover_url like concat('%', #{query.coverUrlFuzzy}, '%')
+			</if>
+			<if test="query.durationFuzzy!= null  and query.durationFuzzy!=''">
+				 and  v.duration like concat('%', #{query.durationFuzzy}, '%')
+			</if>
+			<if test="query.playCountFuzzy!= null  and query.playCountFuzzy!=''">
+				 and  v.play_count like concat('%', #{query.playCountFuzzy}, '%')
+			</if>
+			<if test="query.likeCountFuzzy!= null  and query.likeCountFuzzy!=''">
+				 and  v.like_count like concat('%', #{query.likeCountFuzzy}, '%')
+			</if>
+			<if test="query.commentCountFuzzy!= null  and query.commentCountFuzzy!=''">
+				 and  v.comment_count like concat('%', #{query.commentCountFuzzy}, '%')
+			</if>
+			<if test="query.statusFuzzy!= null  and query.statusFuzzy!=''">
+				 and  v.status like concat('%', #{query.statusFuzzy}, '%')
+			</if>
+			<if test="query.createTimeStart!= null and query.createTimeStart!=''">
+				 <![CDATA[ and  v.create_time>=str_to_date(#{query.createTimeStart}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.createTimeEnd!= null and query.createTimeEnd!=''">
+				 <![CDATA[ and  v.create_time< date_sub(str_to_date(#{query.createTimeEnd},'%Y-%m-%d'),interval -1 day) ]]>
+			</if>
+			<if test="query.updateTimeStart!= null and query.updateTimeStart!=''">
+				 <![CDATA[ and  v.update_time>=str_to_date(#{query.updateTimeStart}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.updateTimeEnd!= null and query.updateTimeEnd!=''">
+				 <![CDATA[ and  v.update_time< date_sub(str_to_date(#{query.updateTimeEnd},'%Y-%m-%d'),interval -1 day) ]]>
+			</if>
+			<if test="query.coinsInsertedFuzzy!= null  and query.coinsInsertedFuzzy!=''">
+				 and  v.coins_inserted like concat('%', #{query.coinsInsertedFuzzy}, '%')
+			</if>
+	 </where>
+	</sql>
+
+	<!-- 查询集合-->
+	<select id="selectList" resultMap="base_result_map" >
+		 SELECT <include refid="base_column_list" />,u.nick_name FROM video v LEFT JOIN user u ON u.user_id=v.user_id <include refid="query_condition" />
+		 <if test="query.orderBy!=null">
+			 order by ${query.orderBy}
+		 </if>
+		 <if test="query.simplePage!=null">
+			 limit #{query.simplePage.start},#{query.simplePage.end}
+		 </if>
+	</select>
+
+	<!-- 查询数量-->
+	<select id="selectCount" resultType="java.lang.Integer" >
+		 SELECT count(1) FROM video v LEFT JOIN user u ON u.user_id=v.user_id <include refid="query_condition" />
+	</select>
+
+	<!-- 插入 （匹配有值的字段）-->
+	<insert id="insert" parameterType="com.shipin.entity.po.Video">
+		<selectKey keyProperty="bean.videoId" resultType="Integer" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		 INSERT INTO video
+		 <trim prefix="(" suffix=")" suffixOverrides="," >
+			<if test="bean.userId != null">
+				 user_id,
+			</if>
+			<if test="bean.categroyId != null">
+				 categroy_id,
+			</if>
+			<if test="bean.title != null">
+				 title,
+			</if>
+			<if test="bean.description != null">
+				 description,
+			</if>
+			<if test="bean.tags != null">
+				 tags,
+			</if>
+			<if test="bean.videoUrl != null">
+				 video_url,
+			</if>
+			<if test="bean.coverUrl != null">
+				 cover_url,
+			</if>
+			<if test="bean.duration != null">
+				 duration,
+			</if>
+			<if test="bean.playCount != null">
+				 play_count,
+			</if>
+			<if test="bean.likeCount != null">
+				 like_count,
+			</if>
+			<if test="bean.commentCount != null">
+				 comment_count,
+			</if>
+			<if test="bean.status != null">
+				 status,
+			</if>
+			<if test="bean.createTime != null">
+				 create_time,
+			</if>
+			<if test="bean.updateTime != null">
+				 update_time,
+			</if>
+			<if test="bean.coinsInserted != null">
+				 coins_inserted,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides="," >
+			<if test="bean.userId!=null">
+				 #{bean.userId},
+			</if>
+			<if test="bean.categroyId!=null">
+				 #{bean.categroyId},
+			</if>
+			<if test="bean.title!=null">
+				 #{bean.title},
+			</if>
+			<if test="bean.description!=null">
+				 #{bean.description},
+			</if>
+			<if test="bean.tags!=null">
+				 #{bean.tags},
+			</if>
+			<if test="bean.videoUrl!=null">
+				 #{bean.videoUrl},
+			</if>
+			<if test="bean.coverUrl!=null">
+				 #{bean.coverUrl},
+			</if>
+			<if test="bean.duration!=null">
+				 #{bean.duration},
+			</if>
+			<if test="bean.playCount!=null">
+				 #{bean.playCount},
+			</if>
+			<if test="bean.likeCount!=null">
+				 #{bean.likeCount},
+			</if>
+			<if test="bean.commentCount!=null">
+				 #{bean.commentCount},
+			</if>
+			<if test="bean.status!=null">
+				 #{bean.status},
+			</if>
+			<if test="bean.createTime!=null">
+				 #{bean.createTime},
+			</if>
+			<if test="bean.updateTime!=null">
+				 #{bean.updateTime},
+			</if>
+			<if test="bean.coinsInserted!=null">
+				 #{bean.coinsInserted},
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 插入或者更新 （匹配有值的字段）-->
+	<insert id="insertOrUpdate" parameterType="com.shipin.entity.po.Video">
+		 INSERT INTO video
+		 <trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.videoId != null">
+				 video_id,
+			</if>
+			<if test="bean.userId != null">
+				 user_id,
+			</if>
+			<if test="bean.categroyId != null">
+				 categroy_id,
+			</if>
+			<if test="bean.title != null">
+				 title,
+			</if>
+			<if test="bean.description != null">
+				 description,
+			</if>
+			<if test="bean.tags != null">
+				 tags,
+			</if>
+			<if test="bean.videoUrl != null">
+				 video_url,
+			</if>
+			<if test="bean.coverUrl != null">
+				 cover_url,
+			</if>
+			<if test="bean.duration != null">
+				 duration,
+			</if>
+			<if test="bean.playCount != null">
+				 play_count,
+			</if>
+			<if test="bean.likeCount != null">
+				 like_count,
+			</if>
+			<if test="bean.commentCount != null">
+				 comment_count,
+			</if>
+			<if test="bean.status != null">
+				 status,
+			</if>
+			<if test="bean.createTime != null">
+				 create_time,
+			</if>
+			<if test="bean.updateTime != null">
+				 update_time,
+			</if>
+			<if test="bean.coinsInserted != null">
+				 coins_inserted,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.videoId!=null">
+				 #{bean.videoId},
+			</if>
+			<if test="bean.userId!=null">
+				 #{bean.userId},
+			</if>
+			<if test="bean.categroyId!=null">
+				 #{bean.categroyId},
+			</if>
+			<if test="bean.title!=null">
+				 #{bean.title},
+			</if>
+			<if test="bean.description!=null">
+				 #{bean.description},
+			</if>
+			<if test="bean.tags!=null">
+				 #{bean.tags},
+			</if>
+			<if test="bean.videoUrl!=null">
+				 #{bean.videoUrl},
+			</if>
+			<if test="bean.coverUrl!=null">
+				 #{bean.coverUrl},
+			</if>
+			<if test="bean.duration!=null">
+				 #{bean.duration},
+			</if>
+			<if test="bean.playCount!=null">
+				 #{bean.playCount},
+			</if>
+			<if test="bean.likeCount!=null">
+				 #{bean.likeCount},
+			</if>
+			<if test="bean.commentCount!=null">
+				 #{bean.commentCount},
+			</if>
+			<if test="bean.status!=null">
+				 #{bean.status},
+			</if>
+			<if test="bean.createTime!=null">
+				 #{bean.createTime},
+			</if>
+			<if test="bean.updateTime!=null">
+				 #{bean.updateTime},
+			</if>
+			<if test="bean.coinsInserted!=null">
+				 #{bean.coinsInserted},
+			</if>
+		 </trim>
+		 on DUPLICATE key update 
+		 <trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.userId!=null">
+				 user_id = VALUES(user_id),
+			</if>
+			<if test="bean.categroyId!=null">
+				 categroy_id = VALUES(categroy_id),
+			</if>
+			<if test="bean.title!=null">
+				 title = VALUES(title),
+			</if>
+			<if test="bean.description!=null">
+				 description = VALUES(description),
+			</if>
+			<if test="bean.tags!=null">
+				 tags = VALUES(tags),
+			</if>
+			<if test="bean.videoUrl!=null">
+				 video_url = VALUES(video_url),
+			</if>
+			<if test="bean.coverUrl!=null">
+				 cover_url = VALUES(cover_url),
+			</if>
+			<if test="bean.duration!=null">
+				 duration = VALUES(duration),
+			</if>
+			<if test="bean.playCount!=null">
+				 play_count = VALUES(play_count),
+			</if>
+			<if test="bean.likeCount!=null">
+				 like_count = VALUES(like_count),
+			</if>
+			<if test="bean.commentCount!=null">
+				 comment_count = VALUES(comment_count),
+			</if>
+			<if test="bean.status!=null">
+				 status = VALUES(status),
+			</if>
+			<if test="bean.createTime!=null">
+				 create_time = VALUES(create_time),
+			</if>
+			<if test="bean.updateTime!=null">
+				 update_time = VALUES(update_time),
+			</if>
+			<if test="bean.coinsInserted!=null">
+				 coins_inserted = VALUES(coins_inserted),
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 添加 （批量插入）-->
+	<insert id="insertBatch" parameterType="com.shipin.entity.po.Video" useGeneratedKeys="true" keyProperty="videoId">
+		 INSERT INTO video(
+			 user_id,
+			 categroy_id,
+			 title,
+			 description,
+			 video_url,
+			 cover_url,
+			 duration,
+			 play_count,
+			 like_count,
+			 comment_count,
+			 status,
+			 create_time,
+			 update_time,
+			 coins_inserted
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.userId},
+				 #{item.categroyId},
+				 #{item.title},
+				 #{item.description},
+				 #{item.videoUrl},
+				 #{item.coverUrl},
+				 #{item.duration},
+				 #{item.playCount},
+				 #{item.likeCount},
+				 #{item.commentCount},
+				 #{item.status},
+				 #{item.createTime},
+				 #{item.updateTime},
+				 #{item.coinsInserted}
+			 )
+		 </foreach>
+	</insert>
+
+	<!-- 批量新增修改 （批量插入）-->
+	<insert id="insertOrUpdateBatch" parameterType="com.shipin.entity.po.Video">
+		 INSERT INTO video(
+			 user_id,
+			 categroy_id,
+			 title,
+			 description,
+			 video_url,
+			 cover_url,
+			 duration,
+			 play_count,
+			 like_count,
+			 comment_count,
+			 status,
+			 create_time,
+			 update_time,
+			 coins_inserted
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.userId},
+				 #{item.categroyId},
+				 #{item.title},
+				 #{item.description},
+				 #{item.videoUrl},
+				 #{item.coverUrl},
+				 #{item.duration},
+				 #{item.playCount},
+				 #{item.likeCount},
+				 #{item.commentCount},
+				 #{item.status},
+				 #{item.createTime},
+				 #{item.updateTime},
+				 #{item.coinsInserted}
+			 )
+		 </foreach>
+			on DUPLICATE key update 
+			user_id = VALUES(user_id),
+			categroy_id = VALUES(categroy_id),
+			title = VALUES(title),
+			description = VALUES(description),
+			video_url = VALUES(video_url),
+			cover_url = VALUES(cover_url),
+			duration = VALUES(duration),
+			play_count = VALUES(play_count),
+			like_count = VALUES(like_count),
+			comment_count = VALUES(comment_count),
+			status = VALUES(status),
+			create_time = VALUES(create_time),
+			update_time = VALUES(update_time),
+			coins_inserted = VALUES(coins_inserted)
+	</insert>
+
+	<!--多条件修改-->
+	<update id="updateByParam" parameterType="com.shipin.entity.query.VideoQuery">
+		 UPDATE video v
+		 <set> 
+			<if test="bean.userId != null">
+				 user_id = #{bean.userId},
+			</if>
+			<if test="bean.categroyId != null">
+				 categroy_id = #{bean.categroyId},
+			</if>
+			<if test="bean.title != null">
+				 title = #{bean.title},
+			</if>
+			<if test="bean.description != null">
+				 description = #{bean.description},
+			</if>
+			<if test="bean.tags != null">
+				 tags = #{bean.tags},
+			</if>
+			<if test="bean.videoUrl != null">
+				 video_url = #{bean.videoUrl},
+			</if>
+			<if test="bean.coverUrl != null">
+				 cover_url = #{bean.coverUrl},
+			</if>
+			<if test="bean.duration != null">
+				 duration = #{bean.duration},
+			</if>
+			<if test="bean.playCount != null">
+				 play_count = #{bean.playCount},
+			</if>
+			<if test="bean.likeCount != null">
+				 like_count = #{bean.likeCount},
+			</if>
+			<if test="bean.commentCount != null">
+				 comment_count = #{bean.commentCount},
+			</if>
+			<if test="bean.status != null">
+				 status = #{bean.status},
+			</if>
+			<if test="bean.createTime != null">
+				 create_time = #{bean.createTime},
+			</if>
+			<if test="bean.updateTime != null">
+				 update_time = #{bean.updateTime},
+			</if>
+			<if test="bean.coinsInserted != null">
+				 coins_inserted = #{bean.coinsInserted},
+			</if>
+		 </set>
+		 <include refid="query_condition" />
+	</update>
+
+	<!--多条件删除-->
+	<delete id="deleteByParam">
+		 delete v from video v LEFT JOIN user u ON u.user_id=v.user_id
+ 		 <include refid="query_condition" />
+	</delete>
+
+	<!-- 根据VideoId修改-->
+	<update id="updateByVideoId" parameterType="com.shipin.entity.po.Video">
+		 UPDATE video
+		 <set> 
+			<if test="bean.userId != null">
+				 user_id = #{bean.userId},
+			</if>
+			<if test="bean.categroyId != null">
+				 categroy_id = #{bean.categroyId},
+			</if>
+			<if test="bean.title != null">
+				 title = #{bean.title},
+			</if>
+			<if test="bean.description != null">
+				 description = #{bean.description},
+			</if>
+			<if test="bean.tags != null">
+				 tags = #{bean.tags},
+			</if>
+			<if test="bean.videoUrl != null">
+				 video_url = #{bean.videoUrl},
+			</if>
+			<if test="bean.coverUrl != null">
+				 cover_url = #{bean.coverUrl},
+			</if>
+			<if test="bean.duration != null">
+				 duration = #{bean.duration},
+			</if>
+			<if test="bean.playCount != null">
+				 play_count = #{bean.playCount},
+			</if>
+			<if test="bean.likeCount != null">
+				 like_count = #{bean.likeCount},
+			</if>
+			<if test="bean.commentCount != null">
+				 comment_count = #{bean.commentCount},
+			</if>
+			<if test="bean.status != null">
+				 status = #{bean.status},
+			</if>
+			<if test="bean.createTime != null">
+				 create_time = #{bean.createTime},
+			</if>
+			<if test="bean.updateTime != null">
+				 update_time = #{bean.updateTime},
+			</if>
+			<if test="bean.coinsInserted != null">
+				 coins_inserted = #{bean.coinsInserted},
+			</if>
+			 <if test="bean.followCount != null">
+				 follow_count = #{bean.followCount},
+			</if>
+		 </set>
+		 where video_id=#{videoId}
+	</update>
+
+	<!-- 根据VideoId删除-->
+	<delete id="deleteByVideoId">
+		delete from video where video_id=#{videoId}
+	</delete>
+
+	<!-- 根据PrimaryKey获取对象-->
+	<select id="selectByVideoId" resultMap="base_result_map" >
+		select <include refid="base_column_list" /> from video v where video_id=#{videoId}
+	</select>
+
+
+	<select id="selectVideo" resultType="com.shipin.entity.po.Video">
+		SELECT v.*,u.nick_name from video v  JOIN user u on u.user_id=v.user_id
+		WHERE 1=1
+		<if test="query.videoId != null">
+			AND v.video_id = #{query.videoId}
+		</if>
+		<if test="query.userId != null">
+			AND v.user_id = #{query.userId}
+		</if>
+		<if test="query.status != null and query.status != ''">
+			AND v.status = #{query.status}
+		</if>
+		<if test="query.simplePage!=null">
+			limit #{query.simplePage.start},#{query.simplePage.end}
+		</if>
+	</select>
+
+	<select id="selectSeeVideo" resultType="com.shipin.entity.po.Video">
+		SELECT v.*,u.nick_name,u.avatar from video v  JOIN user u on u.user_id=v.user_id
+		WHERE v.status = 1
+		  <if test="query.videoId != null">
+			AND v.video_id = #{query.videoId}
+		</if>
+		<if test="query.categroyId != null">
+			AND v.categroy_id = #{query.categroyId}
+		</if>
+		<if test="query.titleFuzzy!= null  and query.titleFuzzy!=''">
+			 and  v.title like concat('%', #{query.titleFuzzy}, '%')
+		</if>
+		<if test="query.simplePage!=null">
+			limit #{query.simplePage.start},#{query.simplePage.end}
+		</if>
+	</select>
+
+	<!-- 获取所有视频 -->
+	<select id="selectAll" resultMap="base_result_map">
+		SELECT <include refid="base_column_list" /> FROM video v
+	</select>
+
+
+	<select id="selectUserLikes" resultType="java.lang.Integer">
+		select sum(like_count) from video v
+		WHERE user_id = #{userId}
+	</select>
+
+	<select id="selectUserPlays" resultType="java.lang.Integer">
+		select sum(play_count) from video v
+		WHERE user_id = #{userId}
+	</select>
+
+	<!-- 获取所有已审核通过的视频 -->
+	<select id="selectAllApprovedVideos" resultMap="base_result_map">
+		SELECT <include refid="base_column_list" /> FROM video v WHERE v.status = '1'
+	</select>
+
+	<!-- 根据标签搜索视频 -->
+	<select id="selectByTags" resultMap="base_result_map">
+		SELECT <include refid="base_column_list" /> FROM video v
+		WHERE v.status = 1 AND v.tags LIKE CONCAT('%', #{tag}, '%')
+		<if test="query.simplePage!=null">
+			limit #{query.simplePage.start},#{query.simplePage.end}
+		</if>
+	</select>
+</mapper>

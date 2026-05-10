@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shipin.mappers.CompilationsMapper">
+
+	<!--实体映射-->
+	<resultMap id="base_result_map" type="com.shipin.entity.po.Compilations">
+		<!---->
+		<result column="user_id" property="userId"  />
+		<!---->
+		<result column="video_id" property="videoId"  />
+		<!---->
+		<result column="compilations_id" property="compilationsId"  />
+		<!---->
+		<result column="compilations_name" property="compilationsName"  />
+	</resultMap>
+
+
+	<!-- 通用查询结果列-->
+	<sql id="base_column_list">
+		 c.user_id,c.video_id,c.compilations_id,c.compilations_name
+	</sql>
+
+	<sql id="base_condition_filed">
+			<if test="query.userId != null">
+				 and  c.user_id = #{query.userId}
+			</if>
+			<if test="query.videoId != null">
+				 and  c.video_id = #{query.videoId}
+			</if>
+			<if test="query.compilationsId != null">
+				 and  c.compilations_id = #{query.compilationsId}
+			</if>
+			<if test="query.compilationsName != null and query.compilationsName!=''">
+				 and  c.compilations_name = #{query.compilationsName}
+			</if>
+	</sql>
+
+	<!-- 通用查询条件列-->
+	<sql id="query_condition">
+	 <where>
+			<include refid="base_condition_filed" />
+			<if test="query.compilationsNameFuzzy!= null  and query.compilationsNameFuzzy!=''">
+				 and  c.compilations_name like concat('%', #{query.compilationsNameFuzzy}, '%')
+			</if>
+	 </where>
+	</sql>
+
+	<!-- 查询集合-->
+	<select id="selectList" resultMap="base_result_map" >
+		 SELECT <include refid="base_column_list" /> FROM compilations c <include refid="query_condition" />
+		 <if test="query.orderBy!=null">
+			 order by ${query.orderBy}
+		 </if>
+		 <if test="query.simplePage!=null">
+			 limit #{query.simplePage.start},#{query.simplePage.end}
+		 </if>
+	</select>
+
+	<!-- 查询数量-->
+	<select id="selectCount" resultType="java.lang.Integer" >
+		 SELECT count(1) FROM compilations c <include refid="query_condition" />
+		 <!-- 过滤掉video_id为null的数据 -->
+		 and c.video_id is not null
+	</select>
+
+	<!-- 插入 （匹配有值的字段）-->
+	<insert id="insert" parameterType="com.shipin.entity.po.Compilations">
+		 INSERT INTO compilations
+		 <trim prefix="(" suffix=")" suffixOverrides="," >
+			<if test="bean.userId != null">
+				 user_id,
+			</if>
+			<if test="bean.videoId != null">
+				 video_id,
+			</if>
+			<if test="bean.compilationsId != null">
+				 compilations_id,
+			</if>
+			<if test="bean.compilationsName != null">
+				 compilations_name,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides="," >
+			<if test="bean.userId!=null">
+				 #{bean.userId},
+			</if>
+			<if test="bean.videoId!=null">
+				 #{bean.videoId},
+			</if>
+			<if test="bean.compilationsId!=null">
+				 #{bean.compilationsId},
+			</if>
+			<if test="bean.compilationsName!=null">
+				 #{bean.compilationsName},
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 插入或者更新 （匹配有值的字段）-->
+	<insert id="insertOrUpdate" parameterType="com.shipin.entity.po.Compilations">
+		 INSERT INTO compilations
+		 <trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.userId != null">
+				 user_id,
+			</if>
+			<if test="bean.videoId != null">
+				 video_id,
+			</if>
+			<if test="bean.compilationsId != null">
+				 compilations_id,
+			</if>
+			<if test="bean.compilationsName != null">
+				 compilations_name,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.userId!=null">
+				 #{bean.userId},
+			</if>
+			<if test="bean.videoId!=null">
+				 #{bean.videoId},
+			</if>
+			<if test="bean.compilationsId!=null">
+				 #{bean.compilationsId},
+			</if>
+			<if test="bean.compilationsName!=null">
+				 #{bean.compilationsName},
+			</if>
+		 </trim>
+		 on DUPLICATE key update 
+		 <trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.userId!=null">
+				 user_id = VALUES(user_id),
+			</if>
+			<if test="bean.videoId!=null">
+				 video_id = VALUES(video_id),
+			</if>
+			<if test="bean.compilationsId!=null">
+				 compilations_id = VALUES(compilations_id),
+			</if>
+			<if test="bean.compilationsName!=null">
+				 compilations_name = VALUES(compilations_name),
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 添加 （批量插入）-->
+	<insert id="insertBatch" parameterType="com.shipin.entity.po.Compilations">
+		 INSERT INTO compilations(
+			 user_id,
+			 video_id,
+			 compilations_id,
+			 compilations_name
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.userId},
+				 #{item.videoId},
+				 #{item.compilationsId},
+				 #{item.compilationsName}
+			 )
+		 </foreach>
+	</insert>
+
+	<!-- 批量新增修改 （批量插入）-->
+	<insert id="insertOrUpdateBatch" parameterType="com.shipin.entity.po.Compilations">
+		 INSERT INTO compilations(
+			 user_id,
+			 video_id,
+			 compilations_id,
+			 compilations_name
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.userId},
+				 #{item.videoId},
+				 #{item.compilationsId},
+				 #{item.compilationsName}
+			 )
+		 </foreach>
+			on DUPLICATE key update 
+			user_id = VALUES(user_id),
+			video_id = VALUES(video_id),
+			compilations_id = VALUES(compilations_id),
+			compilations_name = VALUES(compilations_name)
+	</insert>
+
+	<!--多条件修改-->
+	<update id="updateByParam" parameterType="com.shipin.entity.query.CompilationsQuery">
+		 UPDATE compilations c
+ 		 <set> 
+			<if test="bean.userId != null">
+				 user_id = #{bean.userId},
+			</if>
+			<if test="bean.videoId != null">
+				 video_id = #{bean.videoId},
+			</if>
+			<if test="bean.compilationsId != null">
+				 compilations_id = #{bean.compilationsId},
+			</if>
+			<if test="bean.compilationsName != null">
+				 compilations_name = #{bean.compilationsName},
+			</if>
+ 		 </set>
+ 		 <include refid="query_condition" />
+	</update>
+
+	<!--多条件删除-->
+	<delete id="deleteByParam">
+		 delete c from compilations c
+ 		 <include refid="query_condition" />
+	</delete>
+
+	<select id="selectCompilationsNo" resultType="java.lang.Integer">
+		select IFNULL(MAX(c.compilations_id), 0) from compilations c
+		where c.user_id = #{userId}
+	</select>
+
+	<select id="selectCompilationsByPage" resultMap="base_result_map">
+		select * from compilations where video_id is not null
+		<if test="query.userId != null">
+			and user_id = #{query.userId}
+		</if>
+		<if test="query.compilationsId != null">
+			and compilations_id = #{query.compilationsId}
+		</if>
+		<if test="query.simplePage!=null">
+			limit #{query.simplePage.start},#{query.simplePage.end}
+		</if>
+	</select>
+</mapper>

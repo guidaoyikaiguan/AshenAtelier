@@ -1,0 +1,39 @@
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods:
+              - "GET"
+              - "POST"
+              - "PUT"
+              - "DELETE"
+              - "OPTIONS"
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+      routes:
+        - id: recommend-service
+          uri: http://recommend-service:8082
+          predicates:
+            - Path=/api/recommend/**
+        - id: ai-agent-service
+          uri: http://ai-agent-service:8084
+          predicates:
+            - Path=/api/ai/**
+        - id: existing-system
+          uri: http://shipin:8081
+          predicates:
+            - Path=/api/**
+        - id: static-resources
+          uri: http://shipin:8081
+          predicates:
+            - Path=/avatar/**,/video/**,/cover/**
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://eureka-server:8761/eureka/

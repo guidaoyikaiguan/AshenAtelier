@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shipin.mappers.UserMapper">
+
+	<!--实体映射-->
+	<resultMap id="base_result_map" type="com.shipin.entity.po.User">
+		<!---->
+		<result column="user_id" property="userId"  />
+		<!---->
+		<result column="email" property="email"  />
+		<!---->
+		<result column="nick_name" property="nickName"  />
+		<!---->
+		<result column="password" property="password"  />
+		<!---->
+		<result column="avatar" property="avatar"  />
+		<!---->
+		<result column="create_time" property="createTime"  />
+		<!---->
+		<result column="update_time" property="updateTime"  />
+		<!---->
+		<result column="my_signature" property="mySignature"  />
+		<!---->
+		<result column="my_coin" property="myCoin"  />
+		<!---->
+		<result column="gender" property="gender"  />
+		<!---->
+		<result column="my_Announcement" property="my_Announcement"  />
+
+		<result column="last_login_time" property="lastLoginTime"  />
+		<result column="state" property="state"  />
+	</resultMap>
+
+
+	<!-- 通用查询结果列-->
+	<sql id="base_column_list">
+		 u.user_id,u.email,u.nick_name,u.password,u.avatar,
+		 u.create_time,u.update_time,u.my_signature,u.my_coin,u.gender,u.my_Announcement,u.last_login_time,u.state
+	</sql>
+
+	<sql id="base_condition_filed">
+			<if test="query.userId != null">
+				 and  u.user_id = #{query.userId}
+			</if>
+			<if test="query.email != null and query.email!=''">
+				 and  u.email = #{query.email}
+			</if>
+			<if test="query.nickName != null and query.nickName!=''">
+				 and  u.nick_name = #{query.nickName}
+			</if>
+			<if test="query.password != null and query.password!=''">
+				 and  u.password = #{query.password}
+			</if>
+			<if test="query.avatar != null and query.avatar!=''">
+				 and  u.avatar = #{query.avatar}
+			</if>
+			<if test="query.createTime != null and query.createTime!=''">
+				 <![CDATA[ and  u.create_time=str_to_date(#{query.createTime}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.updateTime != null and query.updateTime!=''">
+				 <![CDATA[ and  u.update_time=str_to_date(#{query.updateTime}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.state != null">
+				 and  u.state = #{query.state}
+			</if>
+	</sql>
+
+	<!-- 通用查询条件列-->
+	<sql id="query_condition">
+	 <where>
+			<include refid="base_condition_filed" />
+			<if test="query.emailFuzzy!= null  and query.emailFuzzy!=''">
+				 and  u.email like concat('%', #{query.emailFuzzy}, '%')
+			</if>
+			<if test="query.nickNameFuzzy!= null  and query.nickNameFuzzy!=''">
+				 and  u.nick_name like concat('%', #{query.nickNameFuzzy}, '%')
+			</if>
+			<if test="query.passwordFuzzy!= null  and query.passwordFuzzy!=''">
+				 and  u.password like concat('%', #{query.passwordFuzzy}, '%')
+			</if>
+			<if test="query.avatarFuzzy!= null  and query.avatarFuzzy!=''">
+				 and  u.avatar like concat('%', #{query.avatarFuzzy}, '%')
+			</if>
+			<if test="query.createTimeStart!= null and query.createTimeStart!=''">
+				 <![CDATA[ and  u.create_time>=str_to_date(#{query.createTimeStart}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.createTimeEnd!= null and query.createTimeEnd!=''">
+				 <![CDATA[ and  u.create_time< date_sub(str_to_date(#{query.createTimeEnd},'%Y-%m-%d'),interval -1 day) ]]>
+			</if>
+			<if test="query.updateTimeStart!= null and query.updateTimeStart!=''">
+				 <![CDATA[ and  u.update_time>=str_to_date(#{query.updateTimeStart}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.updateTimeEnd!= null and query.updateTimeEnd!=''">
+				 <![CDATA[ and  u.update_time< date_sub(str_to_date(#{query.updateTimeEnd},'%Y-%m-%d'),interval -1 day) ]]>
+			</if>
+	 </where>
+	</sql>
+
+	<!-- 查询集合-->
+	<select id="selectList" resultMap="base_result_map" >
+		 SELECT <include refid="base_column_list" /> FROM user u <include refid="query_condition" />
+		 <if test="query.orderBy!=null">
+			 order by ${query.orderBy}
+		 </if>
+		 <if test="query.simplePage!=null">
+			 limit #{query.simplePage.start},#{query.simplePage.end}
+		 </if>
+	</select>
+
+	<!-- 查询数量-->
+	<select id="selectCount" resultType="java.lang.Integer" >
+		 SELECT count(1) FROM user u <include refid="query_condition" />
+	</select>
+
+	<!-- 插入 （匹配有值的字段）-->
+	<insert id="insert" parameterType="com.shipin.entity.po.User" useGeneratedKeys="true" keyProperty="bean.userId">
+		 INSERT INTO user
+		 <trim prefix="(" suffix=")" suffixOverrides="," >
+			<if test="bean.email != null">
+				 email,
+			</if>
+			<if test="bean.nickName != null">
+				 nick_name,
+			</if>
+			<if test="bean.password != null">
+				 password,
+			</if>
+			<if test="bean.avatar != null">
+				 avatar,
+			</if>
+			<if test="bean.createTime != null">
+				 create_time,
+			</if>
+			<if test="bean.updateTime != null">
+				 update_time,
+			</if>
+			<if test="bean.myCoin != null">
+				 my_coin,
+			</if>
+			<if test="bean.state != null">
+				 state,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides="," >
+			<if test="bean.email!=null">
+				 #{bean.email},
+			</if>
+			<if test="bean.nickName!=null">
+				 #{bean.nickName},
+			</if>
+			<if test="bean.password!=null">
+				 #{bean.password},
+			</if>
+			<if test="bean.avatar!=null">
+				 #{bean.avatar},
+			</if>
+			<if test="bean.createTime!=null">
+				 #{bean.createTime},
+			</if>
+			<if test="bean.updateTime!=null">
+				 #{bean.updateTime},
+			</if>
+			<if test="bean.myCoin!=null">
+				 #{bean.myCoin},
+			</if>
+			<if test="bean.state!=null">
+				 #{bean.state},
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 插入或者更新 （匹配有值的字段）-->
+	<insert id="insertOrUpdate" parameterType="com.shipin.entity.po.User">
+		 INSERT INTO user
+		 <trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.userId != null">
+				 user_id,
+			</if>
+			<if test="bean.email != null">
+				 email,
+			</if>
+			<if test="bean.nickName != null">
+				 nick_name,
+			</if>
+			<if test="bean.password != null">
+				 password,
+			</if>
+			<if test="bean.avatar != null">
+				 avatar,
+			</if>
+			<if test="bean.createTime != null">
+				 create_time,
+			</if>
+			<if test="bean.updateTime != null">
+				 update_time,
+			</if>
+			<if test="bean.state != null">
+				 state,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.userId!=null">
+				 #{bean.userId},
+			</if>
+			<if test="bean.email!=null">
+				 #{bean.email},
+			</if>
+			<if test="bean.nickName!=null">
+				 #{bean.nickName},
+			</if>
+			<if test="bean.password!=null">
+				 #{bean.password},
+			</if>
+			<if test="bean.avatar!=null">
+				 #{bean.avatar},
+			</if>
+			<if test="bean.createTime!=null">
+				 #{bean.createTime},
+			</if>
+			<if test="bean.updateTime!=null">
+				 #{bean.updateTime},
+			</if>
+			<if test="bean.state!=null">
+				 #{bean.state},
+			</if>
+		 </trim>
+		 on DUPLICATE key update 
+		 <trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.userId!=null">
+				 user_id = VALUES(user_id),
+			</if>
+			<if test="bean.email!=null">
+				 email = VALUES(email),
+			</if>
+			<if test="bean.nickName!=null">
+				 nick_name = VALUES(nick_name),
+			</if>
+			<if test="bean.password!=null">
+				 password = VALUES(password),
+			</if>
+			<if test="bean.avatar!=null">
+				 avatar = VALUES(avatar),
+			</if>
+			<if test="bean.createTime!=null">
+				 create_time = VALUES(create_time),
+			</if>
+			<if test="bean.updateTime!=null">
+				 update_time = VALUES(update_time),
+			</if>
+			<if test="bean.state!=null">
+				 state = VALUES(state),
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 添加 （批量插入）-->
+	<insert id="insertBatch" parameterType="com.shipin.entity.po.User">
+		 INSERT INTO user(
+			 user_id,
+			 email,
+			 nick_name,
+			 password,
+			 avatar,
+			 create_time,
+			 update_time,
+			 state
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.userId},
+				 #{item.email},
+				 #{item.nickName},
+				 #{item.password},
+				 #{item.avatar},
+				 #{item.createTime},
+				 #{item.updateTime},
+				 #{item.state}
+			 )
+		 </foreach>
+	</insert>
+
+	<!-- 批量新增修改 （批量插入）-->
+	<insert id="insertOrUpdateBatch" parameterType="com.shipin.entity.po.User">
+		 INSERT INTO user(
+			 user_id,
+			 email,
+			 nick_name,
+			 password,
+			 avatar,
+			 create_time,
+			 update_time,
+			 state
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.userId},
+				 #{item.email},
+				 #{item.nickName},
+				 #{item.password},
+				 #{item.avatar},
+				 #{item.createTime},
+				 #{item.updateTime},
+				 #{item.state}
+			 )
+		 </foreach>
+		on DUPLICATE key update 
+		user_id = VALUES(user_id),
+		email = VALUES(email),
+		nick_name = VALUES(nick_name),
+		password = VALUES(password),
+		avatar = VALUES(avatar),
+		create_time = VALUES(create_time),
+		update_time = VALUES(update_time),
+		state = VALUES(state)
+	</insert>
+
+	<!--多条件修改-->
+	<update id="updateByParam" parameterType="com.shipin.entity.query.UserQuery">
+		 UPDATE user u
+		 <set> 
+			<if test="bean.userId != null">
+				 user_id = #{bean.userId},
+			</if>
+			<if test="bean.email != null">
+				 email = #{bean.email},
+			</if>
+			<if test="bean.nickName != null">
+				 nick_name = #{bean.nickName},
+			</if>
+			<if test="bean.password != null">
+				 password = #{bean.password},
+			</if>
+			<if test="bean.avatar != null">
+				 avatar = #{bean.avatar},
+			</if>
+			<if test="bean.createTime != null">
+				 create_time = #{bean.createTime},
+			</if>
+			<if test="bean.updateTime != null">
+				 update_time = #{bean.updateTime},
+			</if>
+			<if test="bean.state != null">
+				 state = #{bean.state},
+			</if>
+		 </set>
+		 <include refid="query_condition" />
+	</update>
+
+	<!--多条件删除-->
+	<delete id="deleteByParam">
+		 delete u from user u
+ 		 <include refid="query_condition" />
+	</delete>
+
+	<!-- 根据UserId修改-->
+	<update id="updateByUserId" parameterType="com.shipin.entity.po.User">
+		 UPDATE user
+		 <set> 
+			<!-- 默认更新update_time为当前时间，确保即使没有其他字段更新，SQL语法也正确 -->
+			update_time = now(),
+			<if test="bean.email != null">
+				 email = #{bean.email},
+			</if>
+			<if test="bean.nickName != null">
+				 nick_name = #{bean.nickName},
+			</if>
+			<if test="bean.password != null">
+				 password = #{bean.password},
+			</if>
+			<if test="bean.avatar != null">
+				 avatar = #{bean.avatar},
+			</if>
+			<if test="bean.createTime != null">
+				 create_time = #{bean.createTime},
+			</if>
+			<if test="bean.updateTime != null">
+				 update_time = #{bean.updateTime},
+			</if>
+			 <if test="bean.mySignature != null">
+				 my_signature = #{bean.mySignature},
+			 </if>
+			 <if test="bean.myCoin != null">
+				 my_coin = #{bean.myCoin},
+			 </if>
+			 <if test="bean.gender != null">
+				 gender = #{bean.gender},
+			 </if>
+			<if test="bean.my_Announcement != null">
+				 my_Announcement = #{bean.my_Announcement},
+			 </if>
+			 <if test="bean.lastLoginTime != null">
+				 last_login_time = #{bean.lastLoginTime},
+			 </if>
+			 <if test="bean.state != null">
+				 state = #{bean.state},
+			 </if>
+		 </set>
+		 where user_id=#{userId}
+	</update>
+
+	<!-- 根据UserId删除-->
+	<delete id="deleteByUserId">
+		delete from user where user_id=#{userId}
+	</delete>
+
+	<!-- 根据PrimaryKey获取对象-->
+	<select id="selectByUserId" resultMap="base_result_map" >
+		select <include refid="base_column_list" /> from user u where user_id=#{userId}
+	</select>
+
+	<select id="selectByEmail" resultMap="base_result_map" >
+		select <include refid="base_column_list" /> from user u where email=#{email}
+	</select>
+</mapper>

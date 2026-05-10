@@ -1,0 +1,52 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:8083"
+            allowedMethods:
+              - "GET"
+              - "POST"
+              - "PUT"
+              - "DELETE"
+              - "OPTIONS"
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+      routes:
+        # 具体路由放前面
+        - id: recommend-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/recommend/**
+
+        - id: ai-agent-service
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/ai/**
+
+        # 通用路由放后面
+        - id: existing-system
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/**
+
+        # 静态资源路由
+        # 静态资源路由
+        - id: static-resources
+          uri: http://localhost:8081
+          predicates:
+            - Path=/avatar/**,/video/**,/cover/**
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/

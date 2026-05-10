@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.shipin.mappers.FansMapper">
+    
+    <!-- 获取用户的关注数量 -->
+    <select id="getFollowingCount" resultType="java.lang.Integer">
+        SELECT COUNT(user_id) FROM fans WHERE fan_id = #{userId}
+    </select>
+    
+    <!-- 获取用户的粉丝数量 -->
+    <select id="getFollowerCount" resultType="java.lang.Integer">
+        SELECT COUNT(user_id) FROM fans WHERE attention_id = #{userId}
+    </select>
+    
+    <!-- 获取用户的关注列表 -->
+    <select id="getFollowingList" resultType="com.shipin.entity.po.User">
+        select u.* from fans f
+        join user u on f.attention_id = u.user_id
+        where f.user_id = #{query.userId}
+        <if test="query.orderBy!=null">
+            order by ${query.orderBy}
+        </if>
+        <if test="query.isCreateTime!=null">
+            order by f.create_time asc
+        </if>
+        <if test="query.isClicks!=null">
+            order by f.clicks Desc
+        </if>
+        <if test="query.simplePage!=null">
+            limit #{query.simplePage.start},#{query.simplePage.end}
+        </if>
+    </select>
+    
+    <!-- 获取用户的粉丝列表 -->
+    <select id="getFollowerList" resultType="com.shipin.entity.po.User">
+        SELECT u.* FROM fans f
+        JOIN user u ON f.user_id = u.user_id
+        WHERE f.attention_id = #{query.userId}
+        <if test="query.orderBy!=null">
+            order by ${query.orderBy}
+        </if>
+        <if test="query.simplePage!=null">
+            limit #{query.simplePage.start},#{query.simplePage.end}
+        </if>
+    </select>
+    
+    <!-- 取消关注 -->
+    <delete id="unfollowUser">
+        DELETE FROM fans WHERE attention_id = #{attentionId} AND fan_id = #{fanId}
+    </delete>
+    
+    <!-- 检查是否已关注 -->
+    <select id="checkFollowStatus" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM fans WHERE attention_id = #{attentionId} AND fan_id = #{fanId}
+    </select>
+
+    <select id="selectByAttentionId" resultType="com.shipin.entity.po.Fans">
+        select * from fans where attention_id = #{attentionId} and user_id = #{userIdFromToken}
+    </select>
+
+    <update id="updateClicks">
+        update fans
+        <set>
+            <if test="fans.clicks!=null">
+                clicks = #{fans.clicks}
+            </if>
+        </set>
+        where attention_id = #{fans.attentionId} and user_id = #{fans.userId}
+    </update>
+
+    <insert id="followUser">
+        insert into fans (attention_id, user_id,create_time) values (#{userId}, #{userIdFromToken}, #{createTime})
+    </insert>
+    <insert id="BecomeFans">
+        insert into fans (fan_id, user_id,create_time) values (#{userIdFromToken}, #{userId}, #{createTime})
+    </insert>
+
+    <select id="selectFowwer" resultType="com.shipin.entity.po.Fans">
+        select * from fans where user_id = #{userIdFromToken} and attention_id = #{userId}
+    </select>
+
+    <select id="selectFans" resultType="com.shipin.entity.po.Fans">
+        select * from fans where fan_id = #{userIdFromToken} and user_id = #{userId}
+    </select>
+
+    <delete id="delFollowUser">
+        delete from fans where attention_id = #{userId} and user_id = #{userIdFromToken}
+    </delete>
+
+    <delete id="delBecomeFans">
+        delete from fans where fan_id = #{userIdFromToken} and user_id = #{userId}
+    </delete>
+</mapper>

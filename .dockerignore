@@ -1,0 +1,15 @@
+**/.venv/
+**/node_modules/
+**/target/
+**/.git/
+**/.idea/
+**/*.iml
+**/logs/
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+*.log
+.env
+.env.docker
+*.md
+D:/shipin/

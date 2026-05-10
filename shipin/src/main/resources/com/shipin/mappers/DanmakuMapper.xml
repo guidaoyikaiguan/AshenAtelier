@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shipin.mappers.DanmakuMapper">
+
+	<!--实体映射-->
+	<resultMap id="base_result_map" type="com.shipin.entity.po.Danmaku">
+		<!---->
+		<id column="id" property="id"  />
+		<!---->
+		<result column="video_id" property="videoId"  />
+		<!---->
+		<result column="user_id" property="userId"  />
+		<!---->
+		<result column="username" property="username"  />
+		<!---->
+		<result column="content" property="content"  />
+		<!---->
+		<result column="time" property="time"  />
+		<!---->
+		<result column="color" property="color"  />
+		<!---->
+		<result column="type" property="type"  />
+		<!---->
+		<result column="create_time" property="createTime"  />
+	</resultMap>
+
+
+	<!-- 通用查询结果列-->
+	<sql id="base_column_list">
+		 d.id,d.video_id,d.user_id,d.username,d.content,
+		 d.time,d.color,d.type,d.create_time
+	</sql>
+
+	<sql id="base_condition_filed">
+			<if test="query.id != null">
+				 and  d.id = #{query.id}
+			</if>
+			<if test="query.videoId != null">
+				 and  d.video_id = #{query.videoId}
+			</if>
+			<if test="query.userId != null">
+				 and  d.user_id = #{query.userId}
+			</if>
+			<if test="query.username != null and query.username!=''">
+				 and  d.username = #{query.username}
+			</if>
+			<if test="query.content != null and query.content!=''">
+				 and  d.content = #{query.content}
+			</if>
+			<if test="query.time != null">
+				 and  d.time = #{query.time}
+			</if>
+			<if test="query.color != null and query.color!=''">
+				 and  d.color = #{query.color}
+			</if>
+			<if test="query.type != null">
+				 and  d.type = #{query.type}
+			</if>
+			<if test="query.createTime != null and query.createTime!=''">
+				 <![CDATA[ and  d.create_time=str_to_date(#{query.createTime}, '%Y-%m-%d') ]]>
+			</if>
+	</sql>
+
+	<!-- 通用查询条件列-->
+	<sql id="query_condition">
+	 <where>
+			<include refid="base_condition_filed" />
+			<if test="query.usernameFuzzy!= null  and query.usernameFuzzy!=''">
+				 and  d.username like concat('%', #{query.usernameFuzzy}, '%')
+			</if>
+			<if test="query.contentFuzzy!= null  and query.contentFuzzy!=''">
+				 and  d.content like concat('%', #{query.contentFuzzy}, '%')
+			</if>
+			<if test="query.colorFuzzy!= null  and query.colorFuzzy!=''">
+				 and  d.color like concat('%', #{query.colorFuzzy}, '%')
+			</if>
+			<if test="query.createTimeStart!= null and query.createTimeStart!=''">
+				 <![CDATA[ and  d.create_time>=str_to_date(#{query.createTimeStart}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.createTimeEnd!= null and query.createTimeEnd!=''">
+				 <![CDATA[ and  d.create_time< date_sub(str_to_date(#{query.createTimeEnd},'%Y-%m-%d'),interval -1 day) ]]>
+			</if>
+	 </where>
+	</sql>
+
+	<!-- 查询集合-->
+	<select id="selectList" resultMap="base_result_map" >
+		 SELECT <include refid="base_column_list" /> FROM danmaku d <include refid="query_condition" />
+		 <if test="query.orderBy!=null">
+			 order by ${query.orderBy}
+		 </if>
+		 <if test="query.simplePage!=null">
+			 limit #{query.simplePage.start},#{query.simplePage.end}
+		 </if>
+	</select>
+
+	<!-- 查询数量-->
+	<select id="selectCount" resultType="java.lang.Integer" >
+		 SELECT count(1) FROM danmaku d <include refid="query_condition" />
+	</select>
+
+	<!-- 插入 （匹配有值的字段）-->
+	<insert id="insert" parameterType="com.shipin.entity.po.Danmaku">
+		<selectKey keyProperty="bean.id" resultType="Integer" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		 INSERT INTO danmaku
+		 <trim prefix="(" suffix=")" suffixOverrides="," >
+			<if test="bean.videoId != null">
+				 video_id,
+			</if>
+			<if test="bean.userId != null">
+				 user_id,
+			</if>
+			<if test="bean.username != null">
+				 username,
+			</if>
+			<if test="bean.content != null">
+				 content,
+			</if>
+			<if test="bean.time != null">
+				 time,
+			</if>
+			<if test="bean.color != null">
+				 color,
+			</if>
+			<if test="bean.type != null">
+				 type,
+			</if>
+			<if test="bean.createTime != null">
+				 create_time,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides="," >
+			<if test="bean.videoId!=null">
+				 #{bean.videoId},
+			</if>
+			<if test="bean.userId!=null">
+				 #{bean.userId},
+			</if>
+			<if test="bean.username!=null">
+				 #{bean.username},
+			</if>
+			<if test="bean.content!=null">
+				 #{bean.content},
+			</if>
+			<if test="bean.time!=null">
+				 #{bean.time},
+			</if>
+			<if test="bean.color!=null">
+				 #{bean.color},
+			</if>
+			<if test="bean.type!=null">
+				 #{bean.type},
+			</if>
+			<if test="bean.createTime!=null">
+				 #{bean.createTime},
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 插入或者更新 （匹配有值的字段）-->
+	<insert id="insertOrUpdate" parameterType="com.shipin.entity.po.Danmaku">
+		 INSERT INTO danmaku
+		 <trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				 id,
+			</if>
+			<if test="bean.videoId != null">
+				 video_id,
+			</if>
+			<if test="bean.userId != null">
+				 user_id,
+			</if>
+			<if test="bean.username != null">
+				 username,
+			</if>
+			<if test="bean.content != null">
+				 content,
+			</if>
+			<if test="bean.time != null">
+				 time,
+			</if>
+			<if test="bean.color != null">
+				 color,
+			</if>
+			<if test="bean.type != null">
+				 type,
+			</if>
+			<if test="bean.createTime != null">
+				 create_time,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.id!=null">
+				 #{bean.id},
+			</if>
+			<if test="bean.videoId!=null">
+				 #{bean.videoId},
+			</if>
+			<if test="bean.userId!=null">
+				 #{bean.userId},
+			</if>
+			<if test="bean.username!=null">
+				 #{bean.username},
+			</if>
+			<if test="bean.content!=null">
+				 #{bean.content},
+			</if>
+			<if test="bean.time!=null">
+				 #{bean.time},
+			</if>
+			<if test="bean.color!=null">
+				 #{bean.color},
+			</if>
+			<if test="bean.type!=null">
+				 #{bean.type},
+			</if>
+			<if test="bean.createTime!=null">
+				 #{bean.createTime},
+			</if>
+		 </trim>
+		 on DUPLICATE key update 
+		 <trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.videoId!=null">
+				 video_id = VALUES(video_id),
+			</if>
+			<if test="bean.userId!=null">
+				 user_id = VALUES(user_id),
+			</if>
+			<if test="bean.username!=null">
+				 username = VALUES(username),
+			</if>
+			<if test="bean.content!=null">
+				 content = VALUES(content),
+			</if>
+			<if test="bean.time!=null">
+				 time = VALUES(time),
+			</if>
+			<if test="bean.color!=null">
+				 color = VALUES(color),
+			</if>
+			<if test="bean.type!=null">
+				 type = VALUES(type),
+			</if>
+			<if test="bean.createTime!=null">
+				 create_time = VALUES(create_time),
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 添加 （批量插入）-->
+	<insert id="insertBatch" parameterType="com.shipin.entity.po.Danmaku" useGeneratedKeys="true" keyProperty="id">
+		 INSERT INTO danmaku(
+			 video_id,
+			 user_id,
+			 username,
+			 content,
+			 time,
+			 color,
+			 type,
+			 create_time
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.videoId},
+				 #{item.userId},
+				 #{item.username},
+				 #{item.content},
+				 #{item.time},
+				 #{item.color},
+				 #{item.type},
+				 #{item.createTime}
+			 )
+		 </foreach>
+	</insert>
+
+	<!-- 批量新增修改 （批量插入）-->
+	<insert id="insertOrUpdateBatch" parameterType="com.shipin.entity.po.Danmaku">
+		 INSERT INTO danmaku(
+			 video_id,
+			 user_id,
+			 username,
+			 content,
+			 time,
+			 color,
+			 type,
+			 create_time
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.videoId},
+				 #{item.userId},
+				 #{item.username},
+				 #{item.content},
+				 #{item.time},
+				 #{item.color},
+				 #{item.type},
+				 #{item.createTime}
+			 )
+		 </foreach>
+			on DUPLICATE key update 
+			video_id = VALUES(video_id),
+			user_id = VALUES(user_id),
+			username = VALUES(username),
+			content = VALUES(content),
+			time = VALUES(time),
+			color = VALUES(color),
+			type = VALUES(type),
+			create_time = VALUES(create_time)
+	</insert>
+
+	<!--多条件修改-->
+	<update id="updateByParam" parameterType="com.shipin.entity.query.DanmakuQuery">
+		 UPDATE danmaku d
+ 		 <set> 
+			<if test="bean.videoId != null">
+				 video_id = #{bean.videoId},
+			</if>
+			<if test="bean.userId != null">
+				 user_id = #{bean.userId},
+			</if>
+			<if test="bean.username != null">
+				 username = #{bean.username},
+			</if>
+			<if test="bean.content != null">
+				 content = #{bean.content},
+			</if>
+			<if test="bean.time != null">
+				 time = #{bean.time},
+			</if>
+			<if test="bean.color != null">
+				 color = #{bean.color},
+			</if>
+			<if test="bean.type != null">
+				 type = #{bean.type},
+			</if>
+			<if test="bean.createTime != null">
+				 create_time = #{bean.createTime},
+			</if>
+ 		 </set>
+ 		 <include refid="query_condition" />
+	</update>
+
+	<!--多条件删除-->
+	<delete id="deleteByParam">
+		 delete d from danmaku d
+ 		 <include refid="query_condition" />
+	</delete>
+
+	<!-- 根据Id修改-->
+	<update id="updateById" parameterType="com.shipin.entity.po.Danmaku">
+		 UPDATE danmaku
+ 		 <set> 
+			<if test="bean.videoId != null">
+				 video_id = #{bean.videoId},
+			</if>
+			<if test="bean.userId != null">
+				 user_id = #{bean.userId},
+			</if>
+			<if test="bean.username != null">
+				 username = #{bean.username},
+			</if>
+			<if test="bean.content != null">
+				 content = #{bean.content},
+			</if>
+			<if test="bean.time != null">
+				 time = #{bean.time},
+			</if>
+			<if test="bean.color != null">
+				 color = #{bean.color},
+			</if>
+			<if test="bean.type != null">
+				 type = #{bean.type},
+			</if>
+			<if test="bean.createTime != null">
+				 create_time = #{bean.createTime},
+			</if>
+ 		 </set>
+ 		 where id=#{id}
+	</update>
+
+	<!-- 根据Id删除-->
+	<delete id="deleteById">
+		delete from danmaku where id=#{id}
+	</delete>
+
+	<!-- 根据PrimaryKey获取对象-->
+	<select id="selectById" resultMap="base_result_map" >
+		select <include refid="base_column_list" /> from danmaku d where id=#{id}
+	</select>
+
+	<select id="getDanmakuByVideoId" resultMap="base_result_map">
+		SELECT * FROM danmaku WHERE video_id = #{videoId} ORDER BY time ASC
+	</select>
+</mapper>

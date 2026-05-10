@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shipin.mappers.ChatMessageMapper">
+    <!-- 发送消息 -->
+    <insert id="insertMessage" parameterType="com.shipin.entity.po.ChatMessage" useGeneratedKeys="true" keyProperty="query.id">
+        INSERT INTO chat_message (sender_id, receiver_id, content, send_time, is_read)
+        VALUES (#{query.senderId}, #{query.receiverId}, #{query.content}, NOW(), COALESCE(#{query.isRead}, false))
+    </insert>
+
+    <!-- 获取与指定用户的聊天记录 -->
+    <select id="getMessages" resultType="com.shipin.entity.po.ChatMessage">
+        SELECT id, sender_id as senderId, receiver_id as receiverId, content, send_time as sendTime, is_read as isRead
+        FROM chat_message
+        WHERE (sender_id = #{userId} AND receiver_id = #{otherUserId})
+           OR (sender_id = #{otherUserId} AND receiver_id = #{userId})
+        ORDER BY send_time ASC
+    </select>
+
+    <!-- 获取用户的聊天会话列表 -->
+    <select id="getSessions" resultType="com.shipin.entity.vo.ChatSessionWithUser">
+        SELECT
+            cs.id as sessionId,
+            CASE
+                WHEN cs.user_id1 = #{userId} THEN cs.user_id2
+                ELSE cs.user_id1
+                END as otherUserId,
+            u.nick_name as otherUserName,
+            u.avatar as otherUserAvatar,
+            cm.content as lastMessage,
+            (SELECT COUNT(*) FROM chat_message WHERE receiver_id = #{userId} AND sender_id = CASE WHEN cs.user_id1 = #{userId} THEN cs.user_id2 ELSE cs.user_id1 END AND is_read = false) as unreadCount,
+            DATE_FORMAT(cs.update_time, '%Y-%m-%d %H:%i:%s') as updateTime
+        FROM chat_session cs
+                 LEFT JOIN user u ON u.user_id = CASE WHEN cs.user_id1 = #{userId} THEN cs.user_id2 ELSE cs.user_id1 END
+                 LEFT JOIN chat_message cm ON cm.id = cs.last_message_id
+        WHERE cs.user_id1 = #{userId} OR cs.user_id2 = #{userId}
+        ORDER BY cs.update_time DESC
+    </select>
+
+    <!-- 标记消息为已读 -->
+    <update id="markAsRead">
+        UPDATE chat_message
+        SET is_read = true
+        WHERE id = #{messageId}
+    </update>
+
+    <!-- 标记与指定用户的所有消息为已读 -->
+    <update id="markAllAsRead">
+        UPDATE chat_message
+        SET is_read = true
+        WHERE sender_id = #{otherUserId} AND receiver_id = #{userId} AND is_read = false
+    </update>
+
+    <!-- 获取未读消息数量 -->
+    <select id="getUnreadCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM chat_message
+        WHERE receiver_id = #{userId} AND sender_id = #{otherUserId} AND is_read = false
+    </select>
+
+    <!-- 获取最后一条消息 -->
+    <select id="getLastMessage" resultType="com.shipin.entity.po.ChatMessage">
+        SELECT id, sender_id as senderId, receiver_id as receiverId, content, send_time as sendTime, is_read as isRead
+        FROM chat_message
+        WHERE (sender_id = #{userId1} AND receiver_id = #{userId2})
+           OR (sender_id = #{userId2} AND receiver_id = #{userId1})
+        ORDER BY send_time DESC
+            LIMIT 1
+    </select>
+
+    <select id="getAllUnreadCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM chat_message
+        WHERE receiver_id = #{userId} AND is_read = false
+    </select>
+
+    <select id="getMessage" resultType="com.shipin.entity.po.ChatMessage">
+        select * from chat_message
+        where sender_id = #{senderId}
+            and receiver_id = #{receiverId}
+            and content = #{content}
+    </select>
+</mapper>

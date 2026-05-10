@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shipin.mappers.CollectMapper">
+
+	<!--实体映射-->
+	<resultMap id="base_result_map" type="com.shipin.entity.po.Collect">
+		<!---->
+		<result column="user_id" property="userId"  />
+		<!---->
+		<result column="video_id" property="videoId"  />
+		<!---->
+		<result column="favorite" property="favorite"  />
+		<!---->
+		<result column="favorite_name" property="favoriteName"  />
+		<!---->
+		<result column="is_public" property="isPublic"  />
+		<!---->
+		<result column="create_time" property="createTime"  />
+	</resultMap>
+
+
+	<!-- 通用查询结果列-->
+	<sql id="base_column_list">
+		 c.user_id,c.video_id,c.favorite,c.favorite_name,c.is_public,c.create_time
+	</sql>
+
+	<sql id="base_condition_filed">
+			<if test="query.userId != null">
+				 and  c.user_id = #{query.userId}
+			</if>
+			<if test="query.videoId != null">
+				 and  c.video_id = #{query.videoId}
+			</if>
+			<if test="query.favorite != null">
+			 and  c.favorite = #{query.favorite}
+		</if>
+			<if test="query.favoriteName != null and query.favoriteName!=''">
+				 and  c.favorite_name = #{query.favoriteName}
+			</if>
+			<if test="query.isPublic != null">
+				 and  c.is_public = #{query.isPublic}
+			</if>
+	</sql>
+
+	<!-- 通用查询条件列-->
+	<sql id="query_condition">
+	 <where>
+			<include refid="base_condition_filed" />
+			<if test="query.favoriteFuzzy!= null  and query.favoriteFuzzy!=''">
+				 and  c.favorite like concat('%', #{query.favoriteFuzzy}, '%')
+			</if>
+			<if test="query.favoriteNameFuzzy!= null  and query.favoriteNameFuzzy!=''">
+				 and  c.favorite_name like concat('%', #{query.favoriteNameFuzzy}, '%')
+			</if>
+	 </where>
+	</sql>
+
+	<!-- 查询集合-->
+	<select id="selectList" resultMap="base_result_map" >
+		 SELECT <include refid="base_column_list" /> FROM collect c <include refid="query_condition" />
+		 <if test="query.orderBy!=null">
+			 order by ${query.orderBy}
+		 </if>
+		 <if test="query.simplePage!=null">
+			 limit #{query.simplePage.start},#{query.simplePage.end}
+		 </if>
+	</select>
+
+	<!-- 查询数量-->
+	<select id="selectCount" resultType="java.lang.Integer" >
+		 SELECT count(1) FROM collect c <include refid="query_condition" />
+	</select>
+
+	<!-- 插入 （匹配有值的字段）-->
+	<insert id="insert" parameterType="com.shipin.entity.po.Collect">
+		 INSERT INTO collect
+		 <trim prefix="(" suffix=")" suffixOverrides="," >
+			<if test="bean.userId != null">
+				 user_id,
+			</if>
+			<if test="bean.videoId != null">
+				 video_id,
+			</if>
+			<if test="bean.favorite != null">
+				 favorite,
+			</if>
+			<if test="bean.favoriteName != null">
+				 favorite_name,
+			</if>
+			<if test="bean.isPublic != null">
+				 is_public,
+			</if>
+			<if test="bean.createTime != null">
+				 create_time,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides="," >
+			<if test="bean.userId!=null">
+				 #{bean.userId},
+			</if>
+			<if test="bean.videoId!=null">
+				 #{bean.videoId},
+			</if>
+			<if test="bean.favorite!=null">
+				 #{bean.favorite},
+			</if>
+			<if test="bean.favoriteName!=null">
+				 #{bean.favoriteName},
+			</if>
+			<if test="bean.isPublic!=null">
+				 #{bean.isPublic},
+			</if>
+			<if test="bean.createTime!=null">
+				 #{bean.createTime},
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 插入或者更新 （匹配有值的字段）-->
+	<insert id="insertOrUpdate" parameterType="com.shipin.entity.po.Collect">
+		 INSERT INTO collect
+		 <trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.userId != null">
+				 user_id,
+			</if>
+			<if test="bean.videoId != null">
+				 video_id,
+			</if>
+			<if test="bean.favorite != null">
+				 favorite,
+			</if>
+			<if test="bean.favoriteName != null">
+				 favorite_name,
+			</if>
+			<if test="bean.isPublic != null">
+				 is_public,
+			</if>
+			<if test="bean.createTime != null">
+				 create_time,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.userId!=null">
+				 #{bean.userId},
+			</if>
+			<if test="bean.videoId!=null">
+				 #{bean.videoId},
+			</if>
+			<if test="bean.favorite!=null">
+				 #{bean.favorite},
+			</if>
+			<if test="bean.favoriteName!=null">
+				 #{bean.favoriteName},
+			</if>
+			<if test="bean.isPublic!=null">
+				 #{bean.isPublic},
+			</if>
+			<if test="bean.createTime!=null">
+				 #{bean.createTime},
+			</if>
+		 </trim>
+		on DUPLICATE key update 
+		 <trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.userId!=null">
+				 user_id = VALUES(user_id),
+			</if>
+			<if test="bean.videoId!=null">
+				 video_id = VALUES(video_id),
+			</if>
+			<if test="bean.favorite!=null">
+				 favorite = VALUES(favorite),
+			</if>
+			<if test="bean.favoriteName!=null">
+				 favorite_name = VALUES(favorite_name),
+			</if>
+			<if test="bean.isPublic!=null">
+				 is_public = VALUES(is_public),
+			</if>
+			<if test="bean.createTime!=null">
+				 create_time = VALUES(create_time),
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 添加 （批量插入）-->
+	<insert id="insertBatch" parameterType="com.shipin.entity.po.Collect">
+		 INSERT INTO collect(
+			 user_id,
+			 video_id,
+			 favorite,
+			 favorite_name,
+			 is_public,
+			 create_time
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.userId},
+				 #{item.videoId},
+				 #{item.favorite},
+				 #{item.favoriteName},
+				 #{item.isPublic},
+				 #{item.createTime}
+			 )
+		 </foreach>
+	</insert>
+
+	<!-- 批量新增修改 （批量插入）-->
+	<insert id="insertOrUpdateBatch" parameterType="com.shipin.entity.po.Collect">
+		 INSERT INTO collect(
+			 user_id,
+			 video_id,
+			 favorite,
+			 favorite_name,
+			 is_public,
+			 create_time
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.userId},
+				 #{item.videoId},
+				 #{item.favorite},
+				 #{item.favoriteName},
+				 #{item.isPublic},
+				 #{item.createTime}
+			 )
+		 </foreach>
+		on DUPLICATE key update 
+		user_id = VALUES(user_id),
+		video_id = VALUES(video_id),
+		favorite = VALUES(favorite),
+		favorite_name = VALUES(favorite_name),
+		is_public = VALUES(is_public),
+		create_time = VALUES(create_time)
+	</insert>
+
+	<!--多条件修改-->
+	<update id="updateByParam" parameterType="com.shipin.entity.query.CollectQuery">
+		 UPDATE collect c
+		 <set> 
+			<if test="bean.userId != null">
+				 user_id = #{bean.userId},
+			</if>
+			<if test="bean.videoId != null">
+				 video_id = #{bean.videoId},
+			</if>
+			<if test="bean.favorite != null">
+				 favorite = #{bean.favorite},
+			</if>
+			<if test="bean.favoriteName != null">
+				 favorite_name = #{bean.favoriteName},
+			</if>
+			<if test="bean.isPublic != null">
+				 is_public = #{bean.isPublic},
+			</if>
+			<if test="bean.createTime != null">
+				 create_time = #{bean.createTime},
+			</if>
+		 </set>
+		 <include refid="query_condition" />
+	</update>
+
+	<!--多条件删除-->
+	<delete id="deleteByParam">
+		 delete c from collect c
+ 		 <include refid="query_condition" />
+	</delete>
+
+	<select id="selectFavorite" resultMap="base_result_map" >
+			select * from collect c
+			where c.user_id = #{userId}
+			and c.video_id is not null
+	</select>
+
+	<select id="selectFavoriteNo" resultType="java.lang.Integer" >
+			select favorite from collect c
+			where c.video_id is not null
+			order by favorite desc LIMIT 1
+	</select>
+
+	<select id="selectOrderByTimeAsc" resultMap="base_result_map" >
+		SELECT * FROM collect c
+		where c.user_id = #{query.userId}
+		and c.favorite = #{query.favorite}
+		and c.video_id is not null
+		 order by c.create_time asc
+		<if test="query.simplePage!=null">
+			limit #{query.simplePage.start},#{query.simplePage.end}
+		</if>
+	</select>
+
+	<select id="selectOrderByPlayCount" resultMap="base_result_map">
+		select * from collect c join video v on c.video_id = v.video_id
+		where c.user_id = #{query.userId}
+		and c.favorite = #{query.favorite}
+		and c.video_id is not null
+		order by CAST(v.play_count AS UNSIGNED) desc
+		<if test="query.simplePage!=null">
+			limit #{query.simplePage.start},#{query.simplePage.end}
+		</if>
+	</select>
+
+	<select id="selectOrderByVideoTime" resultMap="base_result_map">
+		select * from collect c join video v on c.video_id = v.video_id
+		where c.user_id = #{query.userId}
+		and c.favorite = #{query.favorite}
+		and c.video_id is not null
+		order by v.create_time desc
+		<if test="query.simplePage!=null">
+			limit #{query.simplePage.start},#{query.simplePage.end}
+		</if>
+	</select>
+
+</mapper>

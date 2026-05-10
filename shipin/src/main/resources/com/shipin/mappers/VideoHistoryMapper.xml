@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shipin.mappers.VideoHistoryMapper">
+
+	<!--实体映射-->
+	<resultMap id="base_result_map" type="com.shipin.entity.po.VideoHistory">
+		<!--历史记录ID-->
+		<id column="id" property="id"  />
+		<!--用户ID-->
+		<result column="user_id" property="userId"  />
+		<!--视频ID-->
+		<result column="video_id" property="videoId"  />
+		<!--观看进度（秒）-->
+		<result column="progress" property="progress"  />
+		<!--最后观看时间-->
+		<result column="last_watch_time" property="lastWatchTime"  />
+		<!--观看时长（秒）-->
+		<result column="watch_duration" property="watchDuration"  />
+		<!--创建时间-->
+		<result column="created_at" property="createdAt"  />
+		<!--更新时间-->
+		<result column="updated_at" property="updatedAt"  />
+	</resultMap>
+
+
+	<!-- 通用查询结果列-->
+	<sql id="base_column_list">
+		 v.id,v.user_id,v.video_id,v.progress,v.last_watch_time,
+		 v.watch_duration,v.created_at,v.updated_at
+	</sql>
+
+	<!--带视频信息的历史记录映射-->
+	<resultMap id="history_with_video_result_map" type="java.util.HashMap">
+		<!--历史记录字段-->
+		<result column="id" property="id" />
+		<result column="user_id" property="userId" />
+		<result column="video_id" property="videoId" />
+		<result column="progress" property="progress" />
+		<result column="last_watch_time" property="lastWatchTime" />
+		<result column="watch_duration" property="watchDuration" />
+		<result column="created_at" property="createdAt" />
+		<result column="updated_at" property="updatedAt" />
+
+		<!--视频信息字段-->
+		<result column="video_title" property="videoInfo.title" />
+		<result column="video_cover_url" property="videoInfo.coverUrl" />
+		<result column="video_duration" property="videoInfo.duration" />
+		<result column="video_play_count" property="videoInfo.playCount" />
+		<result column="video_like_count" property="videoInfo.likeCount" />
+		<result column="video_comment_count" property="videoInfo.commentCount" />
+		<result column="video_coin_count" property="videoInfo.coinCount" />
+		<result column="video_collect_count" property="videoInfo.collectCount" />
+		<result column="video_status" property="videoInfo.status" />
+		<result column="video_created_at" property="videoInfo.createdAt" />
+
+		<!--用户信息字段-->
+		<result column="user_username" property="videoInfo.username" />
+		<result column="user_nick_name" property="videoInfo.nickName" />
+		<result column="user_avatar" property="videoInfo.avatar" />
+	</resultMap>
+
+	<sql id="base_condition_filed">
+			<if test="query.id != null">
+				 and  v.id = #{query.id}
+			</if>
+			<if test="query.userId != null">
+				 and  v.user_id = #{query.userId}
+			</if>
+			<if test="query.videoId != null">
+				 and  v.video_id = #{query.videoId}
+			</if>
+			<if test="query.progress != null">
+				 and  v.progress = #{query.progress}
+			</if>
+			<if test="query.lastWatchTime != null and query.lastWatchTime!=''">
+				 <![CDATA[ and  v.last_watch_time=str_to_date(#{query.lastWatchTime}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.watchDuration != null">
+				 and  v.watch_duration = #{query.watchDuration}
+			</if>
+			<if test="query.createdAt != null and query.createdAt!=''">
+				 <![CDATA[ and  v.created_at=str_to_date(#{query.createdAt}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.updatedAt != null and query.updatedAt!=''">
+				 <![CDATA[ and  v.updated_at=str_to_date(#{query.updatedAt}, '%Y-%m-%d') ]]>
+			</if>
+	</sql>
+
+	<!-- 通用查询条件列-->
+	<sql id="query_condition">
+	 <where>
+			<include refid="base_condition_filed" />
+			<if test="query.lastWatchTimeStart!= null and query.lastWatchTimeStart!=''">
+				 <![CDATA[ and  v.last_watch_time>=str_to_date(#{query.lastWatchTimeStart}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.lastWatchTimeEnd!= null and query.lastWatchTimeEnd!=''">
+				 <![CDATA[ and  v.last_watch_time< date_sub(str_to_date(#{query.lastWatchTimeEnd},'%Y-%m-%d'),interval -1 day) ]]>
+			</if>
+			<if test="query.createdAtStart!= null and query.createdAtStart!=''">
+				 <![CDATA[ and  v.created_at>=str_to_date(#{query.createdAtStart}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.createdAtEnd!= null and query.createdAtEnd!=''">
+				 <![CDATA[ and  v.created_at< date_sub(str_to_date(#{query.createdAtEnd},'%Y-%m-%d'),interval -1 day) ]]>
+			</if>
+			<if test="query.updatedAtStart!= null and query.updatedAtStart!=''">
+				 <![CDATA[ and  v.updated_at>=str_to_date(#{query.updatedAtStart}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.updatedAtEnd!= null and query.updatedAtEnd!=''">
+				 <![CDATA[ and  v.updated_at< date_sub(str_to_date(#{query.updatedAtEnd},'%Y-%m-%d'),interval -1 day) ]]>
+			</if>
+	 </where>
+	</sql>
+
+	<!-- 查询集合-->
+	<select id="selectList" resultMap="base_result_map" >
+		 SELECT <include refid="base_column_list" /> FROM video_history v <include refid="query_condition" />
+		 <if test="query.orderBy!=null">
+			 order by ${query.orderBy}
+		 </if>
+		 <if test="query.simplePage!=null">
+			 limit #{query.simplePage.start},#{query.simplePage.end}
+		 </if>
+	</select>
+
+	<!-- 查询数量-->
+	<select id="selectCount" resultType="java.lang.Integer" >
+		 SELECT count(1) FROM video_history v <include refid="query_condition" />
+	</select>
+
+	<!-- 插入 （匹配有值的字段）-->
+	<insert id="insert" parameterType="com.shipin.entity.po.VideoHistory">
+		<selectKey keyProperty="bean.id" resultType="Long" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		 INSERT INTO video_history
+		 <trim prefix="(" suffix=")" suffixOverrides="," >
+			<if test="bean.userId != null">
+				 user_id,
+			</if>
+			<if test="bean.videoId != null">
+				 video_id,
+			</if>
+			<if test="bean.progress != null">
+				 progress,
+			</if>
+			<if test="bean.lastWatchTime != null">
+				 last_watch_time,
+			</if>
+			<if test="bean.watchDuration != null">
+				 watch_duration,
+			</if>
+			<if test="bean.createdAt != null">
+				 created_at,
+			</if>
+			<if test="bean.updatedAt != null">
+				 updated_at,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides="," >
+			<if test="bean.userId!=null">
+				 #{bean.userId},
+			</if>
+			<if test="bean.videoId!=null">
+				 #{bean.videoId},
+			</if>
+			<if test="bean.progress!=null">
+				 #{bean.progress},
+			</if>
+			<if test="bean.lastWatchTime!=null">
+				 #{bean.lastWatchTime},
+			</if>
+			<if test="bean.watchDuration!=null">
+				 #{bean.watchDuration},
+			</if>
+			<if test="bean.createdAt!=null">
+				 #{bean.createdAt},
+			</if>
+			<if test="bean.updatedAt!=null">
+				 #{bean.updatedAt},
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 插入或者更新 （匹配有值的字段）-->
+	<insert id="insertOrUpdate" parameterType="com.shipin.entity.po.VideoHistory">
+		 INSERT INTO video_history
+		 <trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				 id,
+			</if>
+			<if test="bean.userId != null">
+				 user_id,
+			</if>
+			<if test="bean.videoId != null">
+				 video_id,
+			</if>
+			<if test="bean.progress != null">
+				 progress,
+			</if>
+			<if test="bean.lastWatchTime != null">
+				 last_watch_time,
+			</if>
+			<if test="bean.watchDuration != null">
+				 watch_duration,
+			</if>
+			<if test="bean.createdAt != null">
+				 created_at,
+			</if>
+			<if test="bean.updatedAt != null">
+				 updated_at,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.id!=null">
+				 #{bean.id},
+			</if>
+			<if test="bean.userId!=null">
+				 #{bean.userId},
+			</if>
+			<if test="bean.videoId!=null">
+				 #{bean.videoId},
+			</if>
+			<if test="bean.progress!=null">
+				 #{bean.progress},
+			</if>
+			<if test="bean.lastWatchTime!=null">
+				 #{bean.lastWatchTime},
+			</if>
+			<if test="bean.watchDuration!=null">
+				 #{bean.watchDuration},
+			</if>
+			<if test="bean.createdAt!=null">
+				 #{bean.createdAt},
+			</if>
+			<if test="bean.updatedAt!=null">
+				 #{bean.updatedAt},
+			</if>
+		 </trim>
+		 on DUPLICATE key update 
+		 <trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.userId!=null">
+				 user_id = VALUES(user_id),
+			</if>
+			<if test="bean.videoId!=null">
+				 video_id = VALUES(video_id),
+			</if>
+			<if test="bean.progress!=null">
+				 progress = VALUES(progress),
+			</if>
+			<if test="bean.lastWatchTime!=null">
+				 last_watch_time = VALUES(last_watch_time),
+			</if>
+			<if test="bean.watchDuration!=null">
+				 watch_duration = VALUES(watch_duration),
+			</if>
+			<if test="bean.createdAt!=null">
+				 created_at = VALUES(created_at),
+			</if>
+			<if test="bean.updatedAt!=null">
+				 updated_at = VALUES(updated_at),
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 添加 （批量插入）-->
+	<insert id="insertBatch" parameterType="com.shipin.entity.po.VideoHistory" useGeneratedKeys="true" keyProperty="id">
+		 INSERT INTO video_history(
+			 user_id,
+			 video_id,
+			 progress,
+			 last_watch_time,
+			 watch_duration,
+			 created_at,
+			 updated_at
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.userId},
+				 #{item.videoId},
+				 #{item.progress},
+				 #{item.lastWatchTime},
+				 #{item.watchDuration},
+				 #{item.createdAt},
+				 #{item.updatedAt}
+			 )
+		 </foreach>
+	</insert>
+
+	<!-- 批量新增修改 （批量插入）-->
+	<insert id="insertOrUpdateBatch" parameterType="com.shipin.entity.po.VideoHistory">
+		 INSERT INTO video_history(
+			 user_id,
+			 video_id,
+			 progress,
+			 last_watch_time,
+			 watch_duration,
+			 created_at,
+			 updated_at
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.userId},
+				 #{item.videoId},
+				 #{item.progress},
+				 #{item.lastWatchTime},
+				 #{item.watchDuration},
+				 #{item.createdAt},
+				 #{item.updatedAt}
+			 )
+		 </foreach>
+			on DUPLICATE key update 
+			user_id = VALUES(user_id),
+			video_id = VALUES(video_id),
+			progress = VALUES(progress),
+			last_watch_time = VALUES(last_watch_time),
+			watch_duration = VALUES(watch_duration),
+			created_at = VALUES(created_at),
+			updated_at = VALUES(updated_at)
+	</insert>
+
+	<!--多条件修改-->
+	<update id="updateByParam" parameterType="com.shipin.entity.query.VideoHistoryQuery">
+		 UPDATE video_history v
+ 		 <set> 
+			<if test="bean.userId != null">
+				 user_id = #{bean.userId},
+			</if>
+			<if test="bean.videoId != null">
+				 video_id = #{bean.videoId},
+			</if>
+			<if test="bean.progress != null">
+				 progress = #{bean.progress},
+			</if>
+			<if test="bean.lastWatchTime != null">
+				 last_watch_time = #{bean.lastWatchTime},
+			</if>
+			<if test="bean.watchDuration != null">
+				 watch_duration = #{bean.watchDuration},
+			</if>
+			<if test="bean.createdAt != null">
+				 created_at = #{bean.createdAt},
+			</if>
+			<if test="bean.updatedAt != null">
+				 updated_at = #{bean.updatedAt},
+			</if>
+ 		 </set>
+ 		 <include refid="query_condition" />
+	</update>
+
+	<!--多条件删除-->
+	<delete id="deleteByParam">
+		 delete v from video_history v
+ 		 <include refid="query_condition" />
+	</delete>
+
+	<!-- 根据Id修改-->
+	<update id="updateById" parameterType="com.shipin.entity.po.VideoHistory">
+		 UPDATE video_history
+ 		 <set> 
+			<if test="bean.userId != null">
+				 user_id = #{bean.userId},
+			</if>
+			<if test="bean.videoId != null">
+				 video_id = #{bean.videoId},
+			</if>
+			<if test="bean.progress != null">
+				 progress = #{bean.progress},
+			</if>
+			<if test="bean.lastWatchTime != null">
+				 last_watch_time = #{bean.lastWatchTime},
+			</if>
+			<if test="bean.watchDuration != null">
+				 watch_duration = #{bean.watchDuration},
+			</if>
+			<if test="bean.createdAt != null">
+				 created_at = #{bean.createdAt},
+			</if>
+			<if test="bean.updatedAt != null">
+				 updated_at = #{bean.updatedAt},
+			</if>
+ 		 </set>
+ 		 where id=#{id}
+	</update>
+
+	<!-- 根据Id删除-->
+	<delete id="deleteById">
+		delete from video_history where id=#{id}
+	</delete>
+
+	<!-- 根据PrimaryKey获取对象-->
+	<select id="selectById" resultMap="base_result_map" >
+		select <include refid="base_column_list" /> from video_history v where id=#{id}
+	</select>
+
+	<!-- 根据UserIdAndVideoId修改-->
+	<update id="updateByUserIdAndVideoId" parameterType="com.shipin.entity.po.VideoHistory">
+		 UPDATE video_history
+ 		 <set> 
+			<if test="bean.progress != null">
+				 progress = #{bean.progress},
+			</if>
+			<if test="bean.lastWatchTime != null">
+				 last_watch_time = #{bean.lastWatchTime},
+			</if>
+			<if test="bean.watchDuration != null">
+				 watch_duration = #{bean.watchDuration},
+			</if>
+			<if test="bean.createdAt != null">
+				 created_at = #{bean.createdAt},
+			</if>
+			<if test="bean.updatedAt != null">
+				 updated_at = #{bean.updatedAt},
+			</if>
+ 		 </set>
+ 		 where user_id=#{userId} and video_id=#{videoId}
+	</update>
+
+	<!-- 根据UserIdAndVideoId删除-->
+	<delete id="deleteByUserIdAndVideoId">
+		delete from video_history where user_id=#{userId} and video_id=#{videoId}
+	</delete>
+
+	<!-- 根据PrimaryKey获取对象-->
+	<select id="selectByUserIdAndVideoId" resultMap="base_result_map" >
+		select <include refid="base_column_list" /> from video_history v where user_id=#{userId} and video_id=#{videoId}
+	</select>
+
+
+	<select id="getVideoHistory" resultMap="history_with_video_result_map" >
+		SELECT  vh.*,v.title, u.nick_name,v.cover_url,v.duration FROM `video_history` vh
+		join video v on v.video_id = vh.video_id
+		join user u on u.user_id = v.user_id
+		where vh.user_id = #{query.userId}
+		order by vh.last_watch_time desc
+	</select>
+
+	<select id="searchVideoHistory" resultMap="history_with_video_result_map">
+		SELECT
+			vh.*,
+			v.title,
+			u.nick_name,
+			v.cover_url,
+			v.duration
+		FROM `video_history` vh
+				 JOIN video v ON v.video_id = vh.video_id
+				 JOIN user u ON u.user_id = v.user_id
+		WHERE
+			vh.user_id = #{userId}
+		  AND (  -- 括号包裹OR条件，确保先匹配标题/昵称，再限定用户ID
+			v.title LIKE CONCAT('%', #{keyword}, '%')
+				OR u.nick_name LIKE CONCAT('%', #{keyword}, '%')
+			)
+	</select>
+</mapper>

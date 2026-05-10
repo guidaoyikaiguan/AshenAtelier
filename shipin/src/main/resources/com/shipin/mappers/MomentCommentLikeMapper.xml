@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shipin.mappers.MomentCommentLikeMapper">
+
+	<!--实体映射-->
+	<resultMap id="base_result_map" type="com.shipin.entity.po.MomentCommentLike">
+		<!---->
+		<result column="user_id" property="userId"  />
+		<!---->
+		<result column="moment_comment_id" property="momentCommentId"  />
+		<!---->
+		<result column="like_time" property="likeTime"  />
+	</resultMap>
+
+
+	<!-- 通用查询结果列-->
+	<sql id="base_column_list">
+		 m.user_id,m.moment_comment_id,m.like_time
+	</sql>
+
+	<sql id="base_condition_filed">
+			<if test="query.userId != null">
+				 and  m.user_id = #{query.userId}
+			</if>
+			<if test="query.momentCommentId != null">
+				 and  m.moment_comment_id = #{query.momentCommentId}
+			</if>
+			<if test="query.likeTime != null and query.likeTime!=''">
+				 <![CDATA[ and  m.like_time=str_to_date(#{query.likeTime}, '%Y-%m-%d') ]]>
+			</if>
+	</sql>
+
+	<!-- 通用查询条件列-->
+	<sql id="query_condition">
+	 <where>
+			<include refid="base_condition_filed" />
+			<if test="query.likeTimeStart!= null and query.likeTimeStart!=''">
+				 <![CDATA[ and  m.like_time>=str_to_date(#{query.likeTimeStart}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.likeTimeEnd!= null and query.likeTimeEnd!=''">
+				 <![CDATA[ and  m.like_time< date_sub(str_to_date(#{query.likeTimeEnd},'%Y-%m-%d'),interval -1 day) ]]>
+			</if>
+	 </where>
+	</sql>
+
+	<!-- 查询集合-->
+	<select id="selectList" resultMap="base_result_map" >
+		 SELECT <include refid="base_column_list" /> FROM moment_comment_like m <include refid="query_condition" />
+		 <if test="query.orderBy!=null">
+			 order by ${query.orderBy}
+		 </if>
+		 <if test="query.simplePage!=null">
+			 limit #{query.simplePage.start},#{query.simplePage.end}
+		 </if>
+	</select>
+
+	<!-- 查询数量-->
+	<select id="selectCount" resultType="java.lang.Integer" >
+		 SELECT count(1) FROM moment_comment_like m <include refid="query_condition" />
+	</select>
+
+	<!-- 插入 （匹配有值的字段）-->
+	<insert id="insert" parameterType="com.shipin.entity.po.MomentCommentLike">
+		 INSERT INTO moment_comment_like
+		 <trim prefix="(" suffix=")" suffixOverrides="," >
+			<if test="bean.userId != null">
+				 user_id,
+			</if>
+			<if test="bean.momentCommentId != null">
+				 moment_comment_id,
+			</if>
+			<if test="bean.likeTime != null">
+				 like_time,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides="," >
+			<if test="bean.userId!=null">
+				 #{bean.userId},
+			</if>
+			<if test="bean.momentCommentId!=null">
+				 #{bean.momentCommentId},
+			</if>
+			<if test="bean.likeTime!=null">
+				 #{bean.likeTime},
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 插入或者更新 （匹配有值的字段）-->
+	<insert id="insertOrUpdate" parameterType="com.shipin.entity.po.MomentCommentLike">
+		 INSERT INTO moment_comment_like
+		 <trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.userId != null">
+				 user_id,
+			</if>
+			<if test="bean.momentCommentId != null">
+				 moment_comment_id,
+			</if>
+			<if test="bean.likeTime != null">
+				 like_time,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.userId!=null">
+				 #{bean.userId},
+			</if>
+			<if test="bean.momentCommentId!=null">
+				 #{bean.momentCommentId},
+			</if>
+			<if test="bean.likeTime!=null">
+				 #{bean.likeTime},
+			</if>
+		 </trim>
+		 on DUPLICATE key update 
+		 <trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.userId!=null">
+				 user_id = VALUES(user_id),
+			</if>
+			<if test="bean.momentCommentId!=null">
+				 moment_comment_id = VALUES(moment_comment_id),
+			</if>
+			<if test="bean.likeTime!=null">
+				 like_time = VALUES(like_time),
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 添加 （批量插入）-->
+	<insert id="insertBatch" parameterType="com.shipin.entity.po.MomentCommentLike">
+		 INSERT INTO moment_comment_like(
+			 user_id,
+			 moment_comment_id,
+			 like_time
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.userId},
+				 #{item.momentCommentId},
+				 #{item.likeTime}
+			 )
+		 </foreach>
+	</insert>
+
+	<!-- 批量新增修改 （批量插入）-->
+	<insert id="insertOrUpdateBatch" parameterType="com.shipin.entity.po.MomentCommentLike">
+		 INSERT INTO moment_comment_like(
+			 user_id,
+			 moment_comment_id,
+			 like_time
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.userId},
+				 #{item.momentCommentId},
+				 #{item.likeTime}
+			 )
+		 </foreach>
+			on DUPLICATE key update 
+			user_id = VALUES(user_id),
+			moment_comment_id = VALUES(moment_comment_id),
+			like_time = VALUES(like_time)
+	</insert>
+
+	<!--多条件修改-->
+	<update id="updateByParam" parameterType="com.shipin.entity.query.MomentCommentLikeQuery">
+		 UPDATE moment_comment_like m
+ 		 <set> 
+			<if test="bean.userId != null">
+				 user_id = #{bean.userId},
+			</if>
+			<if test="bean.momentCommentId != null">
+				 moment_comment_id = #{bean.momentCommentId},
+			</if>
+			<if test="bean.likeTime != null">
+				 like_time = #{bean.likeTime},
+			</if>
+ 		 </set>
+ 		 <include refid="query_condition" />
+	</update>
+
+	<!--多条件删除-->
+	<delete id="deleteByParam">
+		 delete m from moment_comment_like m
+ 		 <include refid="query_condition" />
+	</delete>
+
+	<!-- 根据UserId修改-->
+	<update id="updateByUserId" parameterType="com.shipin.entity.po.MomentCommentLike">
+		 UPDATE moment_comment_like
+ 		 <set> 
+			<if test="bean.momentCommentId != null">
+				 moment_comment_id = #{bean.momentCommentId},
+			</if>
+			<if test="bean.likeTime != null">
+				 like_time = #{bean.likeTime},
+			</if>
+ 		 </set>
+ 		 where user_id=#{userId}
+	</update>
+
+	<!-- 根据UserId删除-->
+	<delete id="deleteByUserId">
+		delete from moment_comment_like where user_id=#{userId}
+	</delete>
+
+	<!-- 根据PrimaryKey获取对象-->
+	<select id="selectByUserId" resultMap="base_result_map" >
+		select <include refid="base_column_list" /> from moment_comment_like m where user_id=#{userId}
+	</select>
+
+</mapper>

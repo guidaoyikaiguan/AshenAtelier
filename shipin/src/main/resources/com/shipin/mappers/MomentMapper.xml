@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shipin.mappers.MomentMapper">
+
+	<!--实体映射-->
+	<resultMap id="base_result_map" type="com.shipin.entity.po.Moment">
+		<!---->
+		<id column="moment_id" property="momentId"  />
+		<!---->
+		<result column="user_id" property="userId"  />
+		<!---->
+		<result column="content" property="content"  />
+		<!---->
+		<result column="image_count" property="imageCount"  />
+		<!---->
+		<result column="like_count" property="likeCount"  />
+		<!---->
+		<result column="comment_count" property="commentCount"  />
+		<!---->
+		<result column="create_time" property="createTime"  />
+		<!---->
+		<result column="update_time" property="updateTime"  />
+	</resultMap>
+
+
+	<!-- 通用查询结果列-->
+	<sql id="base_column_list">
+		 m.moment_id,m.user_id,m.content,m.image_count,m.like_count,
+		 m.comment_count,m.create_time,m.update_time
+	</sql>
+
+	<sql id="base_condition_filed">
+			<if test="query.momentId != null">
+				 and  m.moment_id = #{query.momentId}
+			</if>
+			<if test="query.userId != null">
+				 and  m.user_id = #{query.userId}
+			</if>
+			<if test="query.content != null and query.content!=''">
+				 and  m.content = #{query.content}
+			</if>
+			<if test="query.imageCount != null">
+				 and  m.image_count = #{query.imageCount}
+			</if>
+			<if test="query.likeCount != null">
+				 and  m.like_count = #{query.likeCount}
+			</if>
+			<if test="query.commentCount != null">
+				 and  m.comment_count = #{query.commentCount}
+			</if>
+			<if test="query.createTime != null and query.createTime!=''">
+				 <![CDATA[ and  m.create_time=str_to_date(#{query.createTime}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.updateTime != null and query.updateTime!=''">
+				 <![CDATA[ and  m.update_time=str_to_date(#{query.updateTime}, '%Y-%m-%d') ]]>
+			</if>
+	</sql>
+
+	<!-- 通用查询条件列-->
+	<sql id="query_condition">
+	 <where>
+			<include refid="base_condition_filed" />
+			<if test="query.contentFuzzy!= null  and query.contentFuzzy!=''">
+				 and  m.content like concat('%', #{query.contentFuzzy}, '%')
+			</if>
+			<if test="query.createTimeStart!= null and query.createTimeStart!=''">
+				 <![CDATA[ and  m.create_time>=str_to_date(#{query.createTimeStart}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.createTimeEnd!= null and query.createTimeEnd!=''">
+				 <![CDATA[ and  m.create_time< date_sub(str_to_date(#{query.createTimeEnd},'%Y-%m-%d'),interval -1 day) ]]>
+			</if>
+			<if test="query.updateTimeStart!= null and query.updateTimeStart!=''">
+				 <![CDATA[ and  m.update_time>=str_to_date(#{query.updateTimeStart}, '%Y-%m-%d') ]]>
+			</if>
+			<if test="query.updateTimeEnd!= null and query.updateTimeEnd!=''">
+				 <![CDATA[ and  m.update_time< date_sub(str_to_date(#{query.updateTimeEnd},'%Y-%m-%d'),interval -1 day) ]]>
+			</if>
+	 </where>
+	</sql>
+
+	<!-- 查询集合-->
+	<select id="selectList" resultMap="base_result_map" >
+		 SELECT <include refid="base_column_list" /> FROM moment m <include refid="query_condition" />
+		 <if test="query.orderBy!=null">
+			 order by ${query.orderBy}
+		 </if>
+		 <if test="query.simplePage!=null">
+			 limit #{query.simplePage.start},#{query.simplePage.end}
+		 </if>
+	</select>
+
+	<!-- 查询数量-->
+	<select id="selectCount" resultType="java.lang.Integer" >
+		 SELECT count(1) FROM moment m <include refid="query_condition" />
+	</select>
+
+	<!-- 插入 （匹配有值的字段）-->
+	<insert id="insert" parameterType="com.shipin.entity.po.Moment">
+		<selectKey keyProperty="bean.momentId" resultType="Integer" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		 INSERT INTO moment
+		 <trim prefix="(" suffix=")" suffixOverrides="," >
+			<if test="bean.userId != null">
+				 user_id,
+			</if>
+			<if test="bean.content != null">
+				 content,
+			</if>
+			<if test="bean.imageCount != null">
+				 image_count,
+			</if>
+			<if test="bean.likeCount != null">
+				 like_count,
+			</if>
+			<if test="bean.commentCount != null">
+				 comment_count,
+			</if>
+			<if test="bean.createTime != null">
+				 create_time,
+			</if>
+			<if test="bean.updateTime != null">
+				 update_time,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides="," >
+			<if test="bean.userId!=null">
+				 #{bean.userId},
+			</if>
+			<if test="bean.content!=null">
+				 #{bean.content},
+			</if>
+			<if test="bean.imageCount!=null">
+				 #{bean.imageCount},
+			</if>
+			<if test="bean.likeCount!=null">
+				 #{bean.likeCount},
+			</if>
+			<if test="bean.commentCount!=null">
+				 #{bean.commentCount},
+			</if>
+			<if test="bean.createTime!=null">
+				 #{bean.createTime},
+			</if>
+			<if test="bean.updateTime!=null">
+				 #{bean.updateTime},
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 插入或者更新 （匹配有值的字段）-->
+	<insert id="insertOrUpdate" parameterType="com.shipin.entity.po.Moment">
+		 INSERT INTO moment
+		 <trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.momentId != null">
+				 moment_id,
+			</if>
+			<if test="bean.userId != null">
+				 user_id,
+			</if>
+			<if test="bean.content != null">
+				 content,
+			</if>
+			<if test="bean.imageCount != null">
+				 image_count,
+			</if>
+			<if test="bean.likeCount != null">
+				 like_count,
+			</if>
+			<if test="bean.commentCount != null">
+				 comment_count,
+			</if>
+			<if test="bean.createTime != null">
+				 create_time,
+			</if>
+			<if test="bean.updateTime != null">
+				 update_time,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.momentId!=null">
+				 #{bean.momentId},
+			</if>
+			<if test="bean.userId!=null">
+				 #{bean.userId},
+			</if>
+			<if test="bean.content!=null">
+				 #{bean.content},
+			</if>
+			<if test="bean.imageCount!=null">
+				 #{bean.imageCount},
+			</if>
+			<if test="bean.likeCount!=null">
+				 #{bean.likeCount},
+			</if>
+			<if test="bean.commentCount!=null">
+				 #{bean.commentCount},
+			</if>
+			<if test="bean.createTime!=null">
+				 #{bean.createTime},
+			</if>
+			<if test="bean.updateTime!=null">
+				 #{bean.updateTime},
+			</if>
+		 </trim>
+		 on DUPLICATE key update 
+		 <trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.userId!=null">
+				 user_id = VALUES(user_id),
+			</if>
+			<if test="bean.content!=null">
+				 content = VALUES(content),
+			</if>
+			<if test="bean.imageCount!=null">
+				 image_count = VALUES(image_count),
+			</if>
+			<if test="bean.likeCount!=null">
+				 like_count = VALUES(like_count),
+			</if>
+			<if test="bean.commentCount!=null">
+				 comment_count = VALUES(comment_count),
+			</if>
+			<if test="bean.createTime!=null">
+				 create_time = VALUES(create_time),
+			</if>
+			<if test="bean.updateTime!=null">
+				 update_time = VALUES(update_time),
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 添加 （批量插入）-->
+	<insert id="insertBatch" parameterType="com.shipin.entity.po.Moment" useGeneratedKeys="true" keyProperty="momentId">
+		 INSERT INTO moment(
+			 user_id,
+			 content,
+			 image_count,
+			 like_count,
+			 comment_count,
+			 create_time,
+			 update_time
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.userId},
+				 #{item.content},
+				 #{item.imageCount},
+				 #{item.likeCount},
+				 #{item.commentCount},
+				 #{item.createTime},
+				 #{item.updateTime}
+			 )
+		 </foreach>
+	</insert>
+
+	<!-- 批量新增修改 （批量插入）-->
+	<insert id="insertOrUpdateBatch" parameterType="com.shipin.entity.po.Moment">
+		 INSERT INTO moment(
+			 user_id,
+			 content,
+			 image_count,
+			 like_count,
+			 comment_count,
+			 create_time,
+			 update_time
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.userId},
+				 #{item.content},
+				 #{item.imageCount},
+				 #{item.likeCount},
+				 #{item.commentCount},
+				 #{item.createTime},
+				 #{item.updateTime}
+			 )
+		 </foreach>
+			on DUPLICATE key update 
+			user_id = VALUES(user_id),
+			content = VALUES(content),
+			image_count = VALUES(image_count),
+			like_count = VALUES(like_count),
+			comment_count = VALUES(comment_count),
+			create_time = VALUES(create_time),
+			update_time = VALUES(update_time)
+	</insert>
+
+	<!--多条件修改-->
+	<update id="updateByParam" parameterType="com.shipin.entity.query.MomentQuery">
+		 UPDATE moment m
+ 		 <set> 
+			<if test="bean.userId != null">
+				 user_id = #{bean.userId},
+			</if>
+			<if test="bean.content != null">
+				 content = #{bean.content},
+			</if>
+			<if test="bean.imageCount != null">
+				 image_count = #{bean.imageCount},
+			</if>
+			<if test="bean.likeCount != null">
+				 like_count = #{bean.likeCount},
+			</if>
+			<if test="bean.commentCount != null">
+				 comment_count = #{bean.commentCount},
+			</if>
+			<if test="bean.createTime != null">
+				 create_time = #{bean.createTime},
+			</if>
+			<if test="bean.updateTime != null">
+				 update_time = #{bean.updateTime},
+			</if>
+ 		 </set>
+ 		 <include refid="query_condition" />
+	</update>
+
+	<!--多条件删除-->
+	<delete id="deleteByParam">
+		 delete m from moment m
+ 		 <include refid="query_condition" />
+	</delete>
+
+	<!-- 根据MomentId修改-->
+	<update id="updateByMomentId" parameterType="com.shipin.entity.po.Moment">
+		 UPDATE moment
+ 		 <set> 
+			<if test="bean.userId != null">
+				 user_id = #{bean.userId},
+			</if>
+			<if test="bean.content != null">
+				 content = #{bean.content},
+			</if>
+			<if test="bean.imageCount != null">
+				 image_count = #{bean.imageCount},
+			</if>
+			<if test="bean.likeCount != null">
+				 like_count = #{bean.likeCount},
+			</if>
+			<if test="bean.commentCount != null">
+				 comment_count = #{bean.commentCount},
+			</if>
+			<if test="bean.createTime != null">
+				 create_time = #{bean.createTime},
+			</if>
+			<if test="bean.updateTime != null">
+				 update_time = #{bean.updateTime},
+			</if>
+ 		 </set>
+ 		 where moment_id=#{momentId}
+	</update>
+
+	<!-- 根据MomentId删除-->
+	<delete id="deleteByMomentId">
+		delete from moment where moment_id=#{momentId}
+	</delete>
+
+	<!-- 根据PrimaryKey获取对象-->
+	<select id="selectByMomentId" resultMap="base_result_map" >
+		select <include refid="base_column_list" /> from moment m where moment_id=#{momentId}
+	</select>
+
+	<select id="selectAll" resultMap="base_result_map" >
+		select <include refid="base_column_list" /> from moment m
+	</select>
+</mapper>

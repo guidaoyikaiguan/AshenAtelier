@@ -1,0 +1,269 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # 基础设施
+  # ============================================
+
+  mysql:
+    image: mysql:8.0
+    container_name: shipin-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - shipin-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: shipin-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - shipin-net
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: shipin-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - shipin-net
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.0
+    container_name: shipin-es
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - http.port=9201
+      - transport.port=9300
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9201:9201"
+      - "9300:9300"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9201/_cluster/health | grep -q 'green\\|yellow'"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+    networks:
+      - shipin-net
+
+  # ============================================
+  # 服务注册中心
+  # ============================================
+
+  eureka-server:
+    build:
+      context: ./eureka-server
+    container_name: shipin-eureka
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8761"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - shipin-net
+
+  # ============================================
+  # 微服务
+  # ============================================
+
+  shipin:
+    build:
+      context: ./shipin
+    container_name: shipin-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      MYSQL_USER: ${MYSQL_USER:-root}
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      RABBITMQ_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-abcdefghijklmnopqrstuvwxyz1234567890abcdef}
+    ports:
+      - "8081:8081"
+    volumes:
+      - uploads_data:/data/shipin
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8081"]
+      interval: 15s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
+    networks:
+      - shipin-net
+
+  recommend-service:
+    build:
+      context: ./recommend-service
+    container_name: shipin-recommend
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      MYSQL_USER: ${MYSQL_USER:-root}
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      RABBITMQ_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+    ports:
+      - "8082:8082"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8082"]
+      interval: 15s
+      timeout: 5s
+      retries: 15
+      start_period: 45s
+    networks:
+      - shipin-net
+
+  ai-agent-service:
+    build:
+      context: ./ai-agent-service
+    container_name: shipin-ai-agent
+    environment:
+      LLM_PROVIDER: deepseek
+      LLM_MODEL: deepseek-chat
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_BASE_URL: https://api.deepseek.com/v1
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      MYSQL_HOST: mysql
+      MYSQL_USER: ${MYSQL_USER:-root}
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: shipin
+      SHIPIN_SERVICE_URL: http://shipin:8081
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-abcdefghijklmnopqrstuvwxyz1234567890abcdef}
+      SERVER_HOST: "0.0.0.0"
+      SERVER_PORT: "8084"
+      ASR_ENABLED: ${ASR_ENABLED:-false}
+      TTS_ENABLED: ${TTS_ENABLED:-false}
+    ports:
+      - "8084:8084"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      shipin:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8084/api/ai/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - shipin-net
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: shipin-gateway
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8080:8080"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      shipin:
+        condition: service_healthy
+      recommend-service:
+        condition: service_healthy
+      ai-agent-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - shipin-net
+
+  frontend:
+    build:
+      context: ./ceshi
+      args:
+        VUE_APP_API_BASE_URL: ""
+    container_name: shipin-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    networks:
+      - shipin-net
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  es_data:
+    driver: local
+  uploads_data:
+    driver: local
+
+networks:
+  shipin-net:
+    driver: bridge
+    name: shipin-net

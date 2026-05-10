@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shipin.mappers.UserseeMapper">
+
+	<!--实体映射-->
+	<resultMap id="base_result_map" type="com.shipin.entity.po.Usersee">
+		<!--用户id-->
+		<result column="user_id" property="userId"  />
+		<!--视频id-->
+		<result column="video_id" property="videoId"  />
+		<!--是否点赞-->
+		<result column="iflike" property="iflike"  />
+		<!--是否收藏-->
+		<result column="ifcollect" property="ifcollect"  />
+		<!--投币-->
+		<result column="insertcoins" property="insertcoins"  />
+	</resultMap>
+
+
+	<!-- 通用查询结果列-->
+	<sql id="base_column_list">
+		 u.user_id,u.video_id,u.iflike,u.ifcollect,u.insertcoins
+		 
+	</sql>
+
+	<sql id="base_condition_filed">
+			<if test="query.userId != null">
+				 and  u.user_id = #{query.userId}
+			</if>
+			<if test="query.videoId != null">
+				 and  u.video_id = #{query.videoId}
+			</if>
+			<if test="query.iflike != null and query.iflike!=''">
+				 and  u.iflike = #{query.iflike}
+			</if>
+			<if test="query.ifcollect != null and query.ifcollect!=''">
+				 and  u.ifcollect = #{query.ifcollect}
+			</if>
+			<if test="query.insertcoins != null">
+			 and  u.insertcoins = #{query.insertcoins}
+		</if>
+	</sql>
+
+	<!-- 通用查询条件列-->
+	<sql id="query_condition">
+	 <where>
+			<include refid="base_condition_filed" />
+			<if test="query.iflikeFuzzy!= null  and query.iflikeFuzzy!=''">
+				 and  u.iflike like concat('%', #{query.iflikeFuzzy}, '%')
+			</if>
+			<if test="query.ifcollectFuzzy!= null  and query.ifcollectFuzzy!=''">
+				 and  u.ifcollect like concat('%', #{query.ifcollectFuzzy}, '%')
+			</if>
+			<if test="query.insertcoinsFuzzy!= null  and query.insertcoinsFuzzy!=''">
+				 and  u.insertcoins like concat('%', #{query.insertcoinsFuzzy}, '%')
+			</if>
+	 </where>
+	</sql>
+
+	<!-- 查询集合-->
+	<select id="selectList" resultMap="base_result_map" >
+		 SELECT <include refid="base_column_list" /> FROM usersee u <include refid="query_condition" />
+		 <if test="query.orderBy!=null">
+			 order by ${query.orderBy}
+		 </if>
+		 <if test="query.simplePage!=null">
+			 limit #{query.simplePage.start},#{query.simplePage.end}
+		 </if>
+	</select>
+
+	<!-- 查询数量-->
+	<select id="selectCount" resultType="java.lang.Integer" >
+		 SELECT count(1) FROM usersee u <include refid="query_condition" />
+	</select>
+
+	<!-- 插入 （匹配有值的字段）-->
+	<insert id="insert" parameterType="com.shipin.entity.po.Usersee">
+		 INSERT INTO usersee
+		 <trim prefix="(" suffix=")" suffixOverrides="," >
+			<if test="bean.userId != null">
+				 user_id,
+			</if>
+			<if test="bean.videoId != null">
+				 video_id,
+			</if>
+			<if test="bean.iflike != null">
+				 iflike,
+			</if>
+			<if test="bean.ifcollect != null">
+				 ifcollect,
+			</if>
+			<if test="bean.insertcoins != null">
+				 insertcoins,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides="," >
+			<if test="bean.userId!=null">
+				 #{bean.userId},
+			</if>
+			<if test="bean.videoId!=null">
+				 #{bean.videoId},
+			</if>
+			<if test="bean.iflike!=null">
+				 #{bean.iflike},
+			</if>
+			<if test="bean.ifcollect!=null">
+				 #{bean.ifcollect},
+			</if>
+			<if test="bean.insertcoins!=null">
+				 #{bean.insertcoins},
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 插入或者更新 （匹配有值的字段）-->
+	<insert id="insertOrUpdate" parameterType="com.shipin.entity.po.Usersee">
+		 INSERT INTO usersee
+		 <trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.userId != null">
+				 user_id,
+			</if>
+			<if test="bean.videoId != null">
+				 video_id,
+			</if>
+			<if test="bean.iflike != null">
+				 iflike,
+			</if>
+			<if test="bean.ifcollect != null">
+				 ifcollect,
+			</if>
+			<if test="bean.insertcoins != null">
+				 insertcoins,
+			</if>
+		 </trim>
+		 <trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.userId!=null">
+				 #{bean.userId},
+			</if>
+			<if test="bean.videoId!=null">
+				 #{bean.videoId},
+			</if>
+			<if test="bean.iflike!=null">
+				 #{bean.iflike},
+			</if>
+			<if test="bean.ifcollect!=null">
+				 #{bean.ifcollect},
+			</if>
+			<if test="bean.insertcoins!=null">
+				 #{bean.insertcoins},
+			</if>
+		 </trim>
+		 on DUPLICATE key update 
+		 <trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.userId!=null">
+				 user_id = VALUES(user_id),
+			</if>
+			<if test="bean.videoId!=null">
+				 video_id = VALUES(video_id),
+			</if>
+			<if test="bean.iflike!=null">
+				 iflike = VALUES(iflike),
+			</if>
+			<if test="bean.ifcollect!=null">
+				 ifcollect = VALUES(ifcollect),
+			</if>
+			<if test="bean.insertcoins!=null">
+				 insertcoins = VALUES(insertcoins),
+			</if>
+		 </trim>
+	</insert>
+
+	<!-- 添加 （批量插入）-->
+	<insert id="insertBatch" parameterType="com.shipin.entity.po.Usersee">
+		 INSERT INTO usersee(
+			 user_id,
+			 video_id,
+			 iflike,
+			 ifcollect,
+			 insertcoins
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.userId},
+				 #{item.videoId},
+				 #{item.iflike},
+				 #{item.ifcollect},
+				 #{item.insertcoins}
+			 )
+		 </foreach>
+	</insert>
+
+	<!-- 批量新增修改 （批量插入）-->
+	<insert id="insertOrUpdateBatch" parameterType="com.shipin.entity.po.Usersee">
+		 INSERT INTO usersee(
+			 user_id,
+			 video_id,
+			 iflike,
+			 ifcollect,
+			 insertcoins
+		 )values
+		 <foreach collection="list" item="item" separator=",">
+			 (
+				 #{item.userId},
+				 #{item.videoId},
+				 #{item.iflike},
+				 #{item.ifcollect},
+				 #{item.insertcoins}
+			 )
+		 </foreach>
+			on DUPLICATE key update 
+			user_id = VALUES(user_id),
+			video_id = VALUES(video_id),
+			iflike = VALUES(iflike),
+			ifcollect = VALUES(ifcollect),
+			insertcoins = VALUES(insertcoins)
+	</insert>
+
+	<!--多条件修改-->
+	<update id="updateByParam">
+		 UPDATE usersee u
+		 <set> 
+			<if test="bean.userId != null">
+				 user_id = #{bean.userId},
+			</if>
+			<if test="bean.videoId != null">
+				 video_id = #{bean.videoId},
+			</if>
+			<if test="bean.iflike != null">
+				 iflike = #{bean.iflike},
+			</if>
+			<if test="bean.ifcollect != null">
+				 ifcollect = #{bean.ifcollect},
+			</if>
+			<if test="bean.insertcoins != null">
+				 insertcoins = #{bean.insertcoins},
+			</if>
+		 </set>
+		 <include refid="query_condition" />
+	</update>
+
+	<!--多条件删除-->
+	<delete id="deleteByParam">
+		 delete u from usersee u
+ 		 <include refid="query_condition" />
+	</delete>
+
+	<select id="selectByuseridAndByvideoid" resultMap="base_result_map">
+		select * from usersee where user_id=#{userId} and video_id=#{videoId}
+	</select>
+	<select id="selectAll" resultMap="base_result_map">
+		select * from usersee
+	</select>
+</mapper>
