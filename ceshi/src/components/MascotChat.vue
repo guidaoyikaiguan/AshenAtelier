@@ -165,7 +165,12 @@ const toggleRecording = async () => {
   }
 }
 
-defineExpose({ addMascotMessage, appendStreamToken, streaming })
+const loadMessages = (history) => {
+  messages.value = history || []
+  nextTick(scrollToBottom)
+}
+
+defineExpose({ addMascotMessage, appendStreamToken, streaming, loadMessages })
 
 watch(() => props.visible, (v) => {
   if (v) nextTick(scrollToBottom)

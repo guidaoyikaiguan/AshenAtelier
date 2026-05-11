@@ -17,11 +17,13 @@ from models.schemas import (
     ApiResponse,
     ChatRequest,
     MascotChatRequest,
+    MascotHistoryRequest,
     ModerationLog,
     ModerationRequest,
     TagEnrichRequest,
 )
 from services.asr_service import asr_service
+from services.mascot_history_service import mascot_history_service
 from services.storage_service import storage_service
 
 logger = logging.getLogger(__name__)
@@ -191,6 +193,25 @@ async def mascot_chat(req: MascotChatRequest):
             "X-Accel-Buffering": "no",
         },
     )
+
+
+# Mascot history persistence
+@router.get("/mascot/history")
+async def get_mascot_history(mascot_id: str = Query(..., description="Anonymous mascot user ID")):
+    try:
+        history = await mascot_history_service.get_history(mascot_id)
+        return ApiResponse.ok(data={"history": history})
+    except Exception:
+        return ApiResponse.ok(data={"history": []})
+
+
+@router.post("/mascot/history")
+async def save_mascot_history(req: MascotHistoryRequest):
+    try:
+        await mascot_history_service.save_history(req.mascot_id, req.history)
+        return ApiResponse.ok(msg="saved")
+    except Exception:
+        return ApiResponse.fail(code=500, msg="Failed to save history")
 
 
 # Video transcript via Faster-Whisper

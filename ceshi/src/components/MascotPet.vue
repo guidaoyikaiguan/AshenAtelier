@@ -62,6 +62,7 @@ const expression = ref('default')
 const isDragging = ref(false)
 const imgFailed = ref(false)
 const chatHistory = ref([])
+const mascotId = ref('')
 const position = reactive({ x: 30, y: 80 })
 const activeAudio = ref(null)  // keep reference to prevent GC
 const videoContext = ref(null)  // current video { videoId, title, description, tags }
@@ -203,7 +204,10 @@ const handleChatSend = async (message) => {
 
     chatHistory.value.push({ role: 'user', content: message })
     chatHistory.value.push({ role: 'assistant', content: fullReply })
+    saveHistory()
   } catch (e) {
+    chatHistory.value.push({ role: 'user', content: message })
+    saveHistory()
     chatRef.value?.addMascotMessage('default', '抱歉旅人...我的魔法好像出了点问题，等会儿再试试吧~')
     expression.value = 'sad'
   }
@@ -238,6 +242,44 @@ const typeWithoutAudio = async (text, mood) => {
   chatRef.value?.addMascotMessage(mood, text)
 }
 
+// ---- mascot identity & history persistence ----
+const initMascotId = () => {
+  try {
+    let id = localStorage.getItem('mascot_id')
+    if (!id) {
+      id = crypto.randomUUID()
+      localStorage.setItem('mascot_id', id)
+    }
+    mascotId.value = id
+  } catch (_) {
+    mascotId.value = 'anon-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8)
+  }
+}
+
+const loadHistory = async () => {
+  if (!mascotId.value) return
+  try {
+    const resp = await fetch(`/api/ai/mascot/history?mascot_id=${encodeURIComponent(mascotId.value)}`)
+    if (!resp.ok) return
+    const json = await resp.json()
+    const history = json?.data?.history
+    if (Array.isArray(history) && history.length > 0) {
+      chatHistory.value = history
+      chatRef.value?.loadMessages(history)
+    }
+  } catch (_) {}
+}
+
+const saveHistory = () => {
+  if (!mascotId.value || chatHistory.value.length === 0) return
+  const toSave = chatHistory.value.slice(-50)
+  fetch('/api/ai/mascot/history', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mascot_id: mascotId.value, history: toSave })
+  }).catch(() => {})
+}
+
 // ---- transcript ----
 const fetchTranscript = async (videoId) => {
   try {
@@ -265,6 +307,8 @@ const loadPosition = () => {
 }
 
 onMounted(() => {
+  initMascotId()
+  loadHistory()
   loadPosition()
   mitter.on('toggle-mascot', () => { visible.value = !visible.value })
   mitter.on('video-context', (ctx) => {

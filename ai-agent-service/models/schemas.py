@@ -111,3 +111,8 @@ class MascotChatResponse(BaseModel):
     mood: str
     reply: str
     reply_ja: str = ""
+
+
+class MascotHistoryRequest(BaseModel):
+    mascot_id: str = Field(..., min_length=1, max_length=128)
+    history: list[dict] = Field(default=[])
