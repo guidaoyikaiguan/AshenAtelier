@@ -21,7 +21,7 @@ spring:
           predicates:
             - Path=/api/recommend/**
         - id: ai-agent-service
-          uri: http://ai-agent-service:8084
+          uri: http://host.docker.internal:8084
           predicates:
             - Path=/api/ai/**
         - id: existing-system

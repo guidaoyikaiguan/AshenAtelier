@@ -120,6 +120,10 @@ services:
       RABBITMQ_USER: ${RABBITMQ_USER:-guest}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-abcdefghijklmnopqrstuvwxyz1234567890abcdef}
+      QINIU_ACCESS_KEY: ${QINIU_ACCESS_KEY}
+      QINIU_SECRET_KEY: ${QINIU_SECRET_KEY}
+      QINIU_BUCKET_NAME: ${QINIU_BUCKET_NAME:-monvshipin}
+      QINIU_DOMAIN: ${QINIU_DOMAIN:-tet31ocbs.hn-bkt.clouddn.com}
     ports:
       - "8081:8081"
     volumes:
@@ -241,7 +245,8 @@ services:
     build:
       context: ./ceshi
       args:
-        VUE_APP_API_BASE_URL: ""
+        VUE_APP_API_BASE_URL: ${VUE_APP_API_BASE_URL:-}
+        VUE_APP_QINIU_DOMAIN: ${QINIU_DOMAIN:-tet31ocbs.hn-bkt.clouddn.com}
     container_name: shipin-frontend
     ports:
       - "80:80"

@@ -28,7 +28,7 @@ jwt:
 
 ai-agent:
   service:
-    url: http://ai-agent-service:8084
+    url: http://host.docker.internal:8084
 
 app:
   storage:

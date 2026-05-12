@@ -47,10 +47,12 @@
 import { ref, reactive, computed, onMounted, onUnmounted, inject } from 'vue'
 import MascotChat from './MascotChat.vue'
 import { mitter } from '@/eventbus/eventBus'
+import { useLoginStore } from '@/stores/loginStore'
 import { ElMessage } from 'element-plus'
 
 const Request = inject('Request')
 const Api = inject('Api')
+const loginStore = useLoginStore()
 
 const POS_KEY = 'mascot_pet_position'
 
@@ -63,6 +65,13 @@ const isDragging = ref(false)
 const imgFailed = ref(false)
 const chatHistory = ref([])
 const mascotId = ref('')
+
+const effectiveId = computed(() => {
+  if (loginStore.isLoggedIn && loginStore.userInfo?.userId) {
+    return `user_${loginStore.userInfo.userId}`
+  }
+  return mascotId.value
+})
 const position = reactive({ x: 30, y: 80 })
 const activeAudio = ref(null)  // keep reference to prevent GC
 const videoContext = ref(null)  // current video { videoId, title, description, tags }
@@ -257,9 +266,10 @@ const initMascotId = () => {
 }
 
 const loadHistory = async () => {
-  if (!mascotId.value) return
+  const id = effectiveId.value
+  if (!id) return
   try {
-    const resp = await fetch(`/api/ai/mascot/history?mascot_id=${encodeURIComponent(mascotId.value)}`)
+    const resp = await fetch(`/api/ai/mascot/history?mascot_id=${encodeURIComponent(id)}`)
     if (!resp.ok) return
     const json = await resp.json()
     const history = json?.data?.history
@@ -271,12 +281,13 @@ const loadHistory = async () => {
 }
 
 const saveHistory = () => {
-  if (!mascotId.value || chatHistory.value.length === 0) return
+  const id = effectiveId.value
+  if (!id || chatHistory.value.length === 0) return
   const toSave = chatHistory.value.slice(-50)
   fetch('/api/ai/mascot/history', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ mascot_id: mascotId.value, history: toSave })
+    body: JSON.stringify({ mascot_id: id, history: toSave })
   }).catch(() => {})
 }
 
