@@ -198,7 +198,7 @@ docker compose up -d
   TTS_REF_DIR = "D:/tts_ref"
   
 其中TTS_API_URL 要求电脑本地有正在运行的GPT-SoVITS服务，TTS_REF_DIR 是存放音频的本地文件夹，想要使用语音功能需要将TTS_REF_DIR中的路径改成自己电脑中音频文件的路径
-
+修改后需先停掉docker中的python ai服务改为本地启动python ai服务
 **Q: 视频上传失败？**
 检查七牛云的四个环境变量是否都配对了，以及存储空间是否创建。
 
